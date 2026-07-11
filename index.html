@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>LES MAMELLES — Commande</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<style>
+  :root{
+    --ink:#211C18;
+    --ink-soft:#332B25;
+    --ember:#E1552B;
+    --ember-deep:#B33F1F;
+    --palm:#6E8F4B;
+    --gold:#D6A54C;
+    --cream:#FBF5EA;
+    --cream-dim:#EFE6D6;
+    --radius:14px;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--ink);
+    color:var(--cream);
+    font-family:'Inter',sans-serif;
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+  }
+  h1,h2,h3,.display{font-family:'Fraunces',serif;}
+
+  /* ---------- Header with twin-hill signature ---------- */
+  header.top{
+    position:relative;
+    padding:28px 20px 40px;
+    background:linear-gradient(180deg, var(--ink) 0%, var(--ink-soft) 100%);
+    overflow:hidden;
+    text-align:center;
+  }
+  header.top svg.hills{
+    position:absolute;
+    bottom:0; left:0; width:100%; height:70px;
+    opacity:0.9;
+  }
+  header.top .brand{
+    position:relative; z-index:2;
+    font-size:26px;
+    font-weight:600;
+    letter-spacing:0.5px;
+    color:var(--cream);
+    margin:0;
+  }
+  header.top .tagline{
+    position:relative; z-index:2;
+    font-size:12.5px;
+    color:var(--gold);
+    letter-spacing:2px;
+    text-transform:uppercase;
+    margin:6px 0 0;
+  }
+
+  main{flex:1; padding:18px 16px 100px; max-width:640px; margin:0 auto; width:100%;}
+
+  /* ---------- Nav tabs (bottom, mobile-first) ---------- */
+  nav.tabs{
+    position:fixed; bottom:0; left:0; right:0;
+    display:flex;
+    background:var(--ink-soft);
+    border-top:1px solid rgba(255,255,255,0.08);
+    z-index:50;
+  }
+  nav.tabs button{
+    flex:1;
+    background:none; border:none;
+    color:rgba(251,245,234,0.55);
+    font-family:'Inter',sans-serif;
+    font-size:12px;
+    padding:12px 4px 10px;
+    display:flex; flex-direction:column; align-items:center; gap:4px;
+    cursor:pointer;
+  }
+  nav.tabs button .ico{font-size:19px;}
+  nav.tabs button.active{color:var(--ember);}
+  nav.tabs button.active .ico{transform:translateY(-1px);}
+
+  /* ---------- Cards / panels ---------- */
+  .card{
+    background:var(--ink-soft);
+    border-radius:var(--radius);
+    padding:16px;
+    margin-bottom:14px;
+    border:1px solid rgba(255,255,255,0.06);
+  }
+  .section-title{
+    font-size:12px;
+    letter-spacing:1.5px;
+    text-transform:uppercase;
+    color:var(--gold);
+    margin:22px 0 10px;
+    display:flex; align-items:center; gap:8px;
+  }
+  .section-title::after{content:"";flex:1;height:1px;background:rgba(214,165,76,0.25);}
+
+  /* ---------- Menu items ---------- */
+  .item-row{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:12px 0;
+    border-bottom:1px solid rgba(255,255,255,0.06);
+  }
+  .item-row:last-child{border-bottom:none;}
+  .item-info .name{font-size:15.5px; font-weight:500; color:var(--cream);}
+  .item-info .price{font-size:13px; color:var(--gold); margin-top:2px;}
+  .qty-ctrl{display:flex; align-items:center; gap:10px;}
+  .qty-ctrl button{
+    width:32px; height:32px; border-radius:50%;
+    border:1px solid var(--ember);
+    background:transparent; color:var(--ember);
+    font-size:18px; line-height:1; cursor:pointer;
+  }
+  .qty-ctrl button:active{background:var(--ember); color:var(--ink);}
+  .qty-ctrl .qty{min-width:18px; text-align:center; font-weight:600;}
+
+  /* ---------- Cart / footer summary ---------- */
+  .cart-bar{
+    position:fixed; bottom:64px; left:0; right:0;
+    background:var(--ember);
+    color:var(--ink);
+    padding:12px 18px;
+    display:flex; justify-content:space-between; align-items:center;
+    font-weight:600;
+    z-index:40;
+    box-shadow:0 -6px 18px rgba(0,0,0,0.25);
+  }
+  .cart-bar span.small{font-size:11px; font-weight:400; display:block; opacity:0.8;}
+  .btn{
+    display:inline-flex; align-items:center; justify-content:center; gap:6px;
+    background:var(--ember); color:var(--ink);
+    border:none; border-radius:10px;
+    padding:12px 18px; font-weight:600; font-size:14.5px;
+    cursor:pointer; font-family:'Inter',sans-serif;
+  }
+  .btn.secondary{background:transparent; color:var(--cream); border:1px solid rgba(255,255,255,0.25);}
+  .btn.ghost{background:transparent; color:var(--ember); border:1px solid var(--ember);}
+  .btn.full{width:100%;}
+  .btn.small{padding:8px 12px; font-size:13px;}
+  .btn:disabled{opacity:0.4; cursor:not-allowed;}
+
+  input, select, textarea{
+    width:100%;
+    background:var(--ink);
+    border:1px solid rgba(255,255,255,0.15);
+    color:var(--cream);
+    border-radius:8px;
+    padding:10px 12px;
+    font-family:'Inter',sans-serif;
+    font-size:14px;
+    margin-bottom:10px;
+  }
+  label{font-size:12px; color:rgba(251,245,234,0.6); display:block; margin-bottom:4px;}
+
+  /* ---------- Ticket (kitchen/counter view) ---------- */
+  .ticket{
+    background:var(--cream);
+    color:var(--ink);
+    border-radius:var(--radius);
+    padding:16px;
+    margin-bottom:14px;
+    position:relative;
+    border-left:6px solid var(--ember);
+  }
+  .ticket .tnum{
+    font-family:'Fraunces',serif;
+    font-size:22px; font-weight:700;
+    color:var(--ember-deep);
+  }
+  .ticket .time{font-size:11.5px; color:#7a6f61; margin-top:-2px;}
+  .ticket ul{margin:10px 0; padding:0; list-style:none;}
+  .ticket li{display:flex; justify-content:space-between; font-size:14px; padding:3px 0;}
+  .ticket .total-row{
+    display:flex; justify-content:space-between;
+    border-top:1px dashed #cbbfa9; padding-top:8px; margin-top:6px;
+    font-weight:700;
+  }
+  .ticket .note{font-size:12.5px; font-style:italic; color:#7a6f61; margin-top:6px;}
+  .empty-state{
+    text-align:center; padding:50px 20px; color:rgba(251,245,234,0.5);
+  }
+  .empty-state .big{font-size:34px; margin-bottom:8px;}
+
+  .menu-admin-row{display:flex; gap:8px; align-items:flex-end;}
+  .menu-admin-row .grow{flex:1;}
+  .badge{
+    display:inline-block; font-size:11px; padding:2px 8px; border-radius:20px;
+    background:rgba(110,143,75,0.2); color:var(--palm); font-weight:600;
+  }
+  .toast{
+    position:fixed; top:16px; left:50%; transform:translateX(-50%);
+    background:var(--palm); color:#fff; padding:10px 18px; border-radius:10px;
+    font-size:13.5px; z-index:100; box-shadow:0 6px 20px rgba(0,0,0,0.3);
+    opacity:0; pointer-events:none; transition:opacity 0.25s;
+  }
+  .toast.show{opacity:1;}
+  .hidden{display:none !important;}
+  .setup-wrap{max-width:520px; margin:0 auto;}
+  .steps{font-size:13px; line-height:1.6; color:rgba(251,245,234,0.75);}
+  .steps b{color:var(--gold);}
+  a.link{color:var(--gold);}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <p class="tagline" id="tagline">Restaurant</p>
+  <h1 class="brand" id="brandName">LES MAMELLES</h1>
+  <svg class="hills" viewBox="0 0 400 70" preserveAspectRatio="none">
+    <path d="M0,70 L0,45 Q60,-10 120,45 Q150,20 180,45 Q240,-15 300,45 Q340,15 400,45 L400,70 Z" fill="#332B25"/>
+    <path d="M0,70 L0,55 Q80,10 160,55 Q200,30 260,55 Q320,15 400,55 L400,70 Z" fill="#211C18"/>
+  </svg>
+</header>
+
+<main>
+
+  <!-- ===================== SETUP VIEW ===================== -->
+  <section id="view-setup" class="hidden">
+    <div class="setup-wrap">
+      <h2 style="font-size:19px;">Configuration initiale</h2>
+      <p class="steps">
+        Pour que les commandes soient visibles en temps réel sur tous les appareils (téléphone client, écran du comptoir),
+        l'outil a besoin d'une base <b>Firebase</b> (gratuite). Voici comment l'obtenir en quelques minutes :
+      </p>
+      <p class="steps">
+        <b>1.</b> Allez sur <span style="color:var(--gold)">console.firebase.google.com</span> avec un compte Google.<br>
+        <b>2.</b> Cliquez sur « Ajouter un projet », donnez-lui un nom (ex : lesmamelles), continuez jusqu'à la création.<br>
+        <b>3.</b> Dans le projet, allez dans <b>Compilation → Realtime Database</b> → « Créer une base de données » → choisissez le mode <b>test</b>.<br>
+        <b>4.</b> Retournez à la page d'accueil du projet, cliquez sur l'icône <b>&lt;/&gt; (Web)</b> pour ajouter une application web, donnez-lui un nom.<br>
+        <b>5.</b> Firebase affiche un bloc de code avec des valeurs (apiKey, projectId, databaseURL...). Copiez chaque valeur dans les champs ci-dessous.
+      </p>
+
+      <div class="card">
+        <label>apiKey</label>
+        <input id="cfg_apiKey" placeholder="AIzaSy...">
+        <label>authDomain</label>
+        <input id="cfg_authDomain" placeholder="lesmamelles.firebaseapp.com">
+        <label>databaseURL</label>
+        <input id="cfg_databaseURL" placeholder="https://lesmamelles-default-rtdb.firebaseio.com">
+        <label>projectId</label>
+        <input id="cfg_projectId" placeholder="lesmamelles">
+        <label>storageBucket</label>
+        <input id="cfg_storageBucket" placeholder="lesmamelles.appspot.com">
+        <label>messagingSenderId</label>
+        <input id="cfg_messagingSenderId" placeholder="1234567890">
+        <label>appId</label>
+        <input id="cfg_appId" placeholder="1:1234567890:web:abcdef">
+        <button class="btn full" onclick="saveFirebaseConfig()">Enregistrer et connecter</button>
+        <p id="setupError" style="color:#ff8a65; font-size:12.5px; margin-top:8px;"></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== CLIENT ORDER VIEW ===================== -->
+  <section id="view-order" class="hidden">
+    <div id="menuContainer"></div>
+    <div id="emptyMenu" class="empty-state hidden">
+      <div class="big">🍲</div>
+      Le menu n'a pas encore été rempli.<br>Allez dans « Réglages » pour ajouter vos plats.
+    </div>
+    <div style="margin-top:14px;">
+      <label>Une précision pour votre commande ? (optionnel)</label>
+      <textarea id="clientNote" rows="2" placeholder="Ex: sans piment, pour emporter..."></textarea>
+    </div>
+  </section>
+
+  <!-- ===================== KITCHEN / COUNTER VIEW ===================== -->
+  <section id="view-kitchen" class="hidden">
+    <h2 style="font-size:18px; display:flex; align-items:center; justify-content:space-between;">
+      Commandes en attente <span class="badge" id="pendingCount">0</span>
+    </h2>
+    <div id="ordersContainer"></div>
+    <div id="emptyOrders" class="empty-state">
+      <div class="big">🧾</div>
+      Aucune commande en attente pour le moment.
+    </div>
+
+    <div class="section-title">Historique récent (validées)</div>
+    <div id="doneContainer"></div>
+  </section>
+
+  <!-- ===================== SETTINGS VIEW ===================== -->
+  <section id="view-settings" class="hidden">
+    <div class="card">
+      <h3 style="margin-top:0; font-size:15px;">Numéro WhatsApp du restaurant</h3>
+      <label>Format international, sans espace (ex: 22997000000)</label>
+      <input id="whatsappNumber" placeholder="22997000000">
+      <button class="btn small" onclick="saveWhatsapp()">Enregistrer le numéro</button>
+    </div>
+
+    <div class="section-title">Ajouter un plat / une boisson</div>
+    <div class="card">
+      <label>Nom</label>
+      <input id="newItemName" placeholder="Ex: Poulet braisé">
+      <div class="menu-admin-row">
+        <div class="grow">
+          <label>Prix (FCFA)</label>
+          <input id="newItemPrice" type="number" placeholder="2000">
+        </div>
+        <div class="grow">
+          <label>Catégorie</label>
+          <select id="newItemCategory">
+            <option>Plats</option>
+            <option>Boissons</option>
+            <option>Entrées</option>
+            <option>Desserts</option>
+          </select>
+        </div>
+      </div>
+      <button class="btn full" onclick="addMenuItem()">Ajouter au menu</button>
+    </div>
+
+    <div class="section-title">Menu actuel</div>
+    <div id="menuAdminContainer" class="card"></div>
+
+    <div class="section-title">Avancé</div>
+    <div class="card">
+      <p style="font-size:12.5px; color:rgba(251,245,234,0.6);">Changer de base Firebase (réinitialise la connexion).</p>
+      <button class="btn secondary small" onclick="resetFirebaseConfig()">Reconfigurer Firebase</button>
+    </div>
+  </section>
+
+</main>
+
+<div class="cart-bar hidden" id="cartBar">
+  <div>
+    <span id="cartCount">0 article</span>
+    <span class="small" id="cartTotal">0 FCFA</span>
+  </div>
+  <button class="btn" style="background:var(--ink); color:var(--cream);" onclick="submitOrder()">Envoyer la commande</button>
+</div>
+
+<nav class="tabs" id="tabs">
+  <button class="tab-btn active" data-view="order" onclick="switchView('order')">
+    <span class="ico">🍽️</span>Commander
+  </button>
+  <button class="tab-btn" data-view="kitchen" onclick="switchView('kitchen')">
+    <span class="ico">🖥️</span>Écran
+  </button>
+  <button class="tab-btn" data-view="settings" onclick="switchView('settings')">
+    <span class="ico">⚙️</span>Réglages
+  </button>
+</nav>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============================================================
+   ÉTAT & STOCKAGE LOCAL
+============================================================ */
+let db = null;
+let cart = {}; // { itemId: {name, price, qty} }
+let menuCache = {};
+let ordersCache = {};
+let currentView = 'order';
+
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2200);
+}
+
+/* ============================================================
+   INITIALISATION FIREBASE
+============================================================ */
+function getStoredConfig(){
+  try{ return JSON.parse(localStorage.getItem('lm_firebase_config') || 'null'); }
+  catch(e){ return null; }
+}
+
+function saveFirebaseConfig(){
+  const cfg = {
+    apiKey: document.getElementById('cfg_apiKey').value.trim(),
+    authDomain: document.getElementById('cfg_authDomain').value.trim(),
+    databaseURL: document.getElementById('cfg_databaseURL').value.trim(),
+    projectId: document.getElementById('cfg_projectId').value.trim(),
+    storageBucket: document.getElementById('cfg_storageBucket').value.trim(),
+    messagingSenderId: document.getElementById('cfg_messagingSenderId').value.trim(),
+    appId: document.getElementById('cfg_appId').value.trim()
+  };
+  if(!cfg.apiKey || !cfg.databaseURL || !cfg.projectId){
+    document.getElementById('setupError').textContent = "Merci de remplir au minimum apiKey, databaseURL et projectId.";
+    return;
+  }
+  localStorage.setItem('lm_firebase_config', JSON.stringify(cfg));
+  location.reload();
+}
+
+function resetFirebaseConfig(){
+  if(confirm("Voulez-vous vraiment reconfigurer la connexion Firebase ?")){
+    localStorage.removeItem('lm_firebase_config');
+    location.reload();
+  }
+}
+
+function initApp(){
+  const cfg = getStoredConfig();
+  if(!cfg){
+    document.getElementById('view-setup').classList.remove('hidden');
+    document.getElementById('tabs').classList.add('hidden');
+    return;
+  }
+  try{
+    firebase.initializeApp(cfg);
+    db = firebase.database();
+  }catch(e){
+    document.getElementById('view-setup').classList.remove('hidden');
+    document.getElementById('setupError').textContent = "Connexion impossible : " + e.message;
+    return;
+  }
+
+  // Numéro whatsapp local
+  const wa = localStorage.getItem('lm_whatsapp') || '';
+  document.getElementById('whatsappNumber').value = wa;
+
+  listenMenu();
+  listenOrders();
+  switchView('order');
+}
+
+/* ============================================================
+   NAVIGATION
+============================================================ */
+function switchView(view){
+  currentView = view;
+  ['order','kitchen','settings'].forEach(v=>{
+    document.getElementById('view-'+v).classList.toggle('hidden', v!==view);
+  });
+  document.querySelectorAll('.tab-btn').forEach(b=>{
+    b.classList.toggle('active', b.dataset.view===view);
+  });
+  document.getElementById('cartBar').classList.toggle('hidden', view!=='order' || Object.keys(cart).length===0);
+}
+
+/* ============================================================
+   MENU — LECTURE TEMPS RÉEL
+============================================================ */
+function listenMenu(){
+  db.ref('menu').on('value', snap=>{
+    menuCache = snap.val() || {};
+    renderMenuClient();
+    renderMenuAdmin();
+  });
+}
+
+function renderMenuClient(){
+  const container = document.getElementById('menuContainer');
+  const empty = document.getElementById('emptyMenu');
+  const ids = Object.keys(menuCache);
+  if(ids.length===0){
+    container.innerHTML='';
+    empty.classList.remove('hidden');
+    return;
+  }
+  empty.classList.add('hidden');
+
+  const byCategory = {};
+  ids.forEach(id=>{
+    const item = menuCache[id];
+    const cat = item.category || 'Autres';
+    if(!byCategory[cat]) byCategory[cat]=[];
+    byCategory[cat].push({id, ...item});
+  });
+
+  let html = '';
+  Object.keys(byCategory).forEach(cat=>{
+    html += `<div class="section-title">${cat}</div><div class="card">`;
+    byCategory[cat].forEach(item=>{
+      const qty = cart[item.id] ? cart[item.id].qty : 0;
+      html += `
+        <div class="item-row">
+          <div class="item-info">
+            <div class="name">${item.name}</div>
+            <div class="price">${formatFcfa(item.price)}</div>
+          </div>
+          <div class="qty-ctrl">
+            <button onclick="changeQty('${item.id}', -1)">−</button>
+            <span class="qty" id="qty-${item.id}">${qty}</span>
+            <button onclick="changeQty('${item.id}', 1)">+</button>
+          </div>
+        </div>`;
+    });
+    html += `</div>`;
+  });
+  container.innerHTML = html;
+}
+
+function formatFcfa(n){
+  return Number(n).toLocaleString('fr-FR') + ' FCFA';
+}
+
+function changeQty(id, delta){
+  const item = menuCache[id];
+  if(!item) return;
+  const current = cart[id] ? cart[id].qty : 0;
+  const next = Math.max(0, current + delta);
+  if(next===0){
+    delete cart[id];
+  }else{
+    cart[id] = {name:item.name, price:item.price, qty:next};
+  }
+  document.getElementById('qty-'+id).textContent = next;
+  updateCartBar();
+}
+
+function updateCartBar(){
+  const ids = Object.keys(cart);
+  const bar = document.getElementById('cartBar');
+  if(ids.length===0){
+    bar.classList.add('hidden');
+    return;
+  }
+  bar.classList.remove('hidden');
+  let totalItems=0, totalPrice=0;
+  ids.forEach(id=>{
+    totalItems += cart[id].qty;
+    totalPrice += cart[id].qty * cart[id].price;
+  });
+  document.getElementById('cartCount').textContent = totalItems + (totalItems>1?' articles':' article');
+  document.getElementById('cartTotal').textContent = formatFcfa(totalPrice);
+}
+
+/* ============================================================
+   ENVOI DE COMMANDE
+============================================================ */
+function submitOrder(){
+  const ids = Object.keys(cart);
+  if(ids.length===0) return;
+
+  const items = ids.map(id=>({name:cart[id].name, price:cart[id].price, qty:cart[id].qty}));
+  const total = items.reduce((s,it)=>s+it.price*it.qty,0);
+  const note = document.getElementById('clientNote').value.trim();
+
+  const ticketRef = db.ref('counters/ticket');
+  ticketRef.transaction(current=>(current||0)+1, (err, committed, snap)=>{
+    if(err){ toast("Erreur, réessayez."); return; }
+    const ticketNumber = snap.val();
+    const orderRef = db.ref('orders').push();
+    orderRef.set({
+      ticketNumber,
+      items,
+      total,
+      note: note || null,
+      status: 'en_attente',
+      timestamp: Date.now()
+    }).then(()=>{
+      sendWhatsapp(ticketNumber, items, total, note);
+      cart = {};
+      document.getElementById('clientNote').value='';
+      renderMenuClient();
+      updateCartBar();
+      toast("Commande #"+ticketNumber+" envoyée !");
+    });
+  });
+}
+
+function sendWhatsapp(ticketNumber, items, total, note){
+  const number = localStorage.getItem('lm_whatsapp');
+  let text = `*Nouvelle commande #${ticketNumber} — LES MAMELLES*\n\n`;
+  items.forEach(it=>{
+    text += `• ${it.qty} x ${it.name} — ${formatFcfa(it.price*it.qty)}\n`;
+  });
+  text += `\n*Total : ${formatFcfa(total)}*`;
+  if(note) text += `\nNote : ${note}`;
+
+  const encoded = encodeURIComponent(text);
+  if(number){
+    window.open(`https://wa.me/${number}?text=${encoded}`, '_blank');
+  }else{
+    toast("Astuce : ajoutez un numéro WhatsApp dans Réglages pour l'envoi automatique.");
+  }
+}
+
+/* ============================================================
+   ÉCRAN CENTRALISÉ (CUISINE / COMPTOIR)
+============================================================ */
+function listenOrders(){
+  db.ref('orders').on('value', snap=>{
+    ordersCache = snap.val() || {};
+    renderOrders();
+  });
+}
+
+function renderOrders(){
+  const pending = [];
+  const done = [];
+  Object.keys(ordersCache).forEach(id=>{
+    const o = {id, ...ordersCache[id]};
+    if(o.status==='valide') done.push(o); else pending.push(o);
+  });
+  pending.sort((a,b)=>a.timestamp-b.timestamp);
+  done.sort((a,b)=>b.timestamp-a.timestamp);
+
+  document.getElementById('pendingCount').textContent = pending.length;
+  document.getElementById('emptyOrders').classList.toggle('hidden', pending.length>0);
+
+  document.getElementById('ordersContainer').innerHTML = pending.map(o=>ticketHtml(o, true)).join('');
+  document.getElementById('doneContainer').innerHTML = done.slice(0,15).map(o=>ticketHtml(o, false)).join('')
+    || '<p style="font-size:13px; color:rgba(251,245,234,0.4);">Aucune commande validée récemment.</p>';
+}
+
+function ticketHtml(o, pending){
+  const time = new Date(o.timestamp).toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
+  const itemsHtml = o.items.map(it=>`<li><span>${it.qty} x ${it.name}</span><span>${formatFcfa(it.price*it.qty)}</span></li>`).join('');
+  return `
+    <div class="ticket">
+      <div class="tnum">#${o.ticketNumber}</div>
+      <div class="time">${time}</div>
+      <ul>${itemsHtml}</ul>
+      <div class="total-row"><span>Total</span><span>${formatFcfa(o.total)}</span></div>
+      ${o.note ? `<div class="note">Note : ${o.note}</div>` : ''}
+      ${pending ? `<button class="btn full" style="margin-top:10px;" onclick="validateOrder('${o.id}')">✓ Payé — Valider</button>` : `<span class="badge" style="margin-top:8px; display:inline-block;">Validée</span>`}
+    </div>`;
+}
+
+function validateOrder(id){
+  db.ref('orders/'+id).update({status:'valide', validatedAt: Date.now()});
+  toast("Commande validée");
+}
+
+/* ============================================================
+   RÉGLAGES — WHATSAPP
+============================================================ */
+function saveWhatsapp(){
+  const val = document.getElementById('whatsappNumber').value.trim();
+  localStorage.setItem('lm_whatsapp', val);
+  toast("Numéro enregistré");
+}
+
+/* ============================================================
+   RÉGLAGES — MENU (ADMIN)
+============================================================ */
+function addMenuItem(){
+  const name = document.getElementById('newItemName').value.trim();
+  const price = parseFloat(document.getElementById('newItemPrice').value);
+  const category = document.getElementById('newItemCategory').value;
+  if(!name || !price || price<=0){
+    toast("Merci de renseigner un nom et un prix valide.");
+    return;
+  }
+  db.ref('menu').push({name, price, category});
+  document.getElementById('newItemName').value='';
+  document.getElementById('newItemPrice').value='';
+  toast("Plat ajouté au menu");
+}
+
+function renderMenuAdmin(){
+  const container = document.getElementById('menuAdminContainer');
+  const ids = Object.keys(menuCache);
+  if(ids.length===0){
+    container.innerHTML = '<p style="font-size:13px; color:rgba(251,245,234,0.5);">Aucun plat pour le moment.</p>';
+    return;
+  }
+  container.innerHTML = ids.map(id=>{
+    const item = menuCache[id];
+    return `
+      <div class="item-row">
+        <div class="item-info">
+          <div class="name">${item.name} <span class="badge">${item.category||''}</span></div>
+          <div class="price">${formatFcfa(item.price)}</div>
+        </div>
+        <button class="btn ghost small" onclick="deleteMenuItem('${id}')">Retirer</button>
+      </div>`;
+  }).join('');
+}
+
+function deleteMenuItem(id){
+  if(confirm("Retirer ce plat du menu ?")){
+    db.ref('menu/'+id).remove();
+    toast("Plat retiré");
+  }
+}
+
+/* ============================================================
+   DÉMARRAGE
+============================================================ */
+initApp();
+</script>
+</body>
+</html>
