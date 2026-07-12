@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Commande Facile — Admin (PRIVÉ)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<style>
+  :root{
+    --ink:#1A1714; --ink-soft:#2A2420; --gold:#D6A54C; --ember:#E1552B;
+    --palm:#6E8F4B; --cream:#FBF5EA;
+  }
+  *{box-sizing:border-box;}
+  body{
+    background:var(--ink); color:var(--cream); font-family:'Inter',sans-serif;
+    margin:0; padding:20px 16px 60px; max-width:640px; margin-inline:auto;
+  }
+  h1{font-family:'Fraunces',serif; font-size:22px; margin-bottom:4px;}
+  .warn-banner{
+    background:rgba(225,85,43,0.15); border:1px solid var(--ember); color:#ffb199;
+    padding:10px 14px; border-radius:10px; font-size:12.5px; margin-bottom:20px;
+  }
+  .card{
+    background:var(--ink-soft); border-radius:14px; padding:16px; margin-bottom:18px;
+    border:1px solid rgba(255,255,255,0.06);
+  }
+  h2{font-size:15px; margin-top:0; color:var(--gold);}
+  label{font-size:12px; color:rgba(251,245,234,0.6); display:block; margin-bottom:4px;}
+  input{
+    width:100%; background:var(--ink); border:1px solid rgba(255,255,255,0.15);
+    color:var(--cream); border-radius:8px; padding:10px 12px; font-size:14px; margin-bottom:10px;
+  }
+  .btn{
+    background:var(--ember); color:var(--ink); border:none; border-radius:10px;
+    padding:11px 16px; font-weight:600; font-size:14px; cursor:pointer; width:100%;
+  }
+  .btn.secondary{background:transparent; border:1px solid var(--gold); color:var(--gold);}
+  .result{
+    background:var(--ink); border:1px dashed var(--gold); border-radius:10px;
+    padding:14px; margin-top:12px; font-size:14px;
+  }
+  .result .code{font-family:'Fraunces',serif; font-size:20px; color:var(--gold); letter-spacing:1px;}
+  .tenant-row{
+    display:flex; justify-content:space-between; align-items:center;
+    padding:10px 0; border-bottom:1px solid rgba(255,255,255,0.06); font-size:13.5px;
+  }
+  .badge{font-size:10.5px; padding:2px 8px; border-radius:20px; background:rgba(110,143,75,0.2); color:var(--palm);}
+  .badge.expired{background:rgba(225,85,43,0.2); color:var(--ember);}
+</style>
+</head>
+<body>
+
+<h1>🔐 Commande Facile — Panneau Admin</h1>
+<div class="warn-banner">
+  Cet outil est <b>strictement privé</b>. Ne le publiez jamais sur un lien public et ne le partagez avec aucun client.
+</div>
+
+<div class="card">
+  <h2>1. Créer un nouveau restaurant</h2>
+  <label>Nom du restaurant</label>
+  <input id="newRestoName" placeholder="Ex: Chez Fifamè">
+  <button class="btn" onclick="createTenant()">Créer l'espace</button>
+  <div id="createResult"></div>
+</div>
+
+<div class="card">
+  <h2>2. Générer un code d'activation (après essai expiré)</h2>
+  <label>Code restaurant</label>
+  <input id="actTenantId" placeholder="Ex: ABCD1234" style="text-transform:uppercase;">
+  <label>Code appareil envoyé par le client</label>
+  <input id="actDeviceFp" placeholder="Ex: K3J9XZ2">
+  <button class="btn" onclick="generateActivation()">Générer le code d'activation</button>
+  <div id="activationResult"></div>
+</div>
+
+<div class="card">
+  <h2>3. Mes restaurants</h2>
+  <div id="tenantList">Chargement...</div>
+</div>
+
+<script>
+const PRODUCT_FIREBASE_CONFIG = {
+  apiKey: "AIzaSyDMiRPGnk_GMEWnnN62ssOkH3hAV1_IxWE",
+  authDomain: "lesmamelles-commande-rapide.firebaseapp.com",
+  databaseURL: "https://lesmamelles-commande-rapide-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "lesmamelles-commande-rapide",
+  storageBucket: "lesmamelles-commande-rapide.firebasestorage.app",
+  messagingSenderId: "827726169276",
+  appId: "1:827726169276:web:466ed765c358d19f0b7cb9"
+};
+const TRIAL_DAYS = 30;
+const LICENSE_SECRET = "CmdFacile-2026-Benin"; // doit être identique dans l'application client
+
+firebase.initializeApp(PRODUCT_FIREBASE_CONFIG);
+const db = firebase.database();
+
+function simpleHash(str){
+  let hash = 0;
+  for(let i=0;i<str.length;i++){
+    hash = (hash*31 + str.charCodeAt(i)) >>> 0;
+  }
+  return hash;
+}
+
+function randomTenantId(){
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let id = '';
+  for(let i=0;i<8;i++) id += chars[Math.floor(Math.random()*chars.length)];
+  return id;
+}
+
+function createTenant(){
+  const name = document.getElementById('newRestoName').value.trim();
+  if(!name){ alert('Entrez un nom de restaurant.'); return; }
+  const id = randomTenantId();
+  db.ref('restaurants/'+id+'/info').set({
+    name,
+    whatsappNumber: '',
+    createdAt: Date.now()
+    // trialStart sera défini automatiquement au premier lancement côté client
+  }).then(()=>{
+    document.getElementById('createResult').innerHTML = `
+      <div class="result">
+        Espace créé pour <b>${name}</b>.<br>
+        Code restaurant à transmettre au client :<br>
+        <span class="code">${id}</span>
+      </div>`;
+    document.getElementById('newRestoName').value='';
+    loadTenants();
+  });
+}
+
+function computeActivationCode(tenantId, fingerprint){
+  const raw = tenantId + '|' + fingerprint + '|' + LICENSE_SECRET;
+  const h = simpleHash(raw).toString(36).toUpperCase().padStart(8,'0').slice(0,8);
+  return h.slice(0,4) + '-' + h.slice(4,8);
+}
+
+function generateActivation(){
+  const tenantId = document.getElementById('actTenantId').value.trim().toUpperCase();
+  const fp = document.getElementById('actDeviceFp').value.trim().toUpperCase();
+  if(!tenantId || !fp){ alert('Renseignez le code restaurant et le code appareil.'); return; }
+  const code = computeActivationCode(tenantId, fp);
+  document.getElementById('activationResult').innerHTML = `
+    <div class="result">
+      Code d'activation à transmettre au client :<br>
+      <span class="code">${code}</span>
+    </div>`;
+}
+
+function loadTenants(){
+  db.ref('restaurants').once('value').then(snap=>{
+    const data = snap.val() || {};
+    const ids = Object.keys(data);
+    const container = document.getElementById('tenantList');
+    if(ids.length===0){
+      container.innerHTML = '<p style="font-size:13px; color:rgba(251,245,234,0.5);">Aucun restaurant créé pour le moment.</p>';
+      return;
+    }
+    container.innerHTML = ids.map(id=>{
+      const info = data[id].info || {};
+      let statusHtml = '<span class="badge">Non démarré</span>';
+      if(info.trialStart){
+        const daysElapsed = (Date.now() - info.trialStart) / (1000*60*60*24);
+        if(daysElapsed >= TRIAL_DAYS){
+          statusHtml = '<span class="badge expired">Essai expiré</span>';
+        }else{
+          const left = Math.ceil(TRIAL_DAYS - daysElapsed);
+          statusHtml = `<span class="badge">Essai: ${left}j restants</span>`;
+        }
+      }
+      return `<div class="tenant-row">
+        <span><b>${info.name||'(sans nom)'}</b> — ${id}</span>
+        ${statusHtml}
+      </div>`;
+    }).join('');
+  });
+}
+
+loadTenants();
+</script>
+</body>
+</html>
