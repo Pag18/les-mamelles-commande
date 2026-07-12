@@ -211,12 +211,13 @@
 
   /* ---------- Accès personnel (PIN) ---------- */
   .staff-dot{
-    position:absolute; top:14px; right:16px; z-index:5;
-    width:22px; height:22px; border-radius:50%;
-    background:rgba(255,255,255,0.06);
+    position:absolute; top:6px; right:6px; z-index:5;
+    width:44px; height:44px; border-radius:50%;
+    background:transparent;
     display:flex; align-items:center; justify-content:center;
-    color:rgba(251,245,234,0.3); font-size:12px; cursor:pointer;
+    color:rgba(251,245,234,0.35); font-size:14px; cursor:pointer;
   }
+  .staff-dot:active{background:rgba(255,255,255,0.08);}
   .pin-overlay{
     position:fixed; inset:0; background:rgba(0,0,0,0.75);
     display:flex; align-items:center; justify-content:center;
