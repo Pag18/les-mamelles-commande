@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>LES MAMELLES — Commande</title>
+<title>Commande Facile</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -32,7 +32,6 @@
   }
   h1,h2,h3,.display{font-family:'Fraunces',serif;}
 
-  /* ---------- Header with twin-hill signature ---------- */
   header.top{
     position:relative;
     padding:28px 20px 40px;
@@ -64,7 +63,6 @@
 
   main{flex:1; padding:18px 16px 100px; max-width:640px; margin:0 auto; width:100%;}
 
-  /* ---------- Nav tabs (bottom, mobile-first) ---------- */
   nav.tabs{
     position:fixed; bottom:0; left:0; right:0;
     display:flex;
@@ -84,9 +82,7 @@
   }
   nav.tabs button .ico{font-size:19px;}
   nav.tabs button.active{color:var(--ember);}
-  nav.tabs button.active .ico{transform:translateY(-1px);}
 
-  /* ---------- Cards / panels ---------- */
   .card{
     background:var(--ink-soft);
     border-radius:var(--radius);
@@ -104,7 +100,6 @@
   }
   .section-title::after{content:"";flex:1;height:1px;background:rgba(214,165,76,0.25);}
 
-  /* ---------- Menu items ---------- */
   .item-row{
     display:flex; align-items:center; justify-content:space-between;
     padding:12px 0;
@@ -123,7 +118,6 @@
   .qty-ctrl button:active{background:var(--ember); color:var(--ink);}
   .qty-ctrl .qty{min-width:18px; text-align:center; font-weight:600;}
 
-  /* ---------- Cart / footer summary ---------- */
   .cart-bar{
     position:fixed; bottom:64px; left:0; right:0;
     background:var(--ember);
@@ -161,7 +155,6 @@
   }
   label{font-size:12px; color:rgba(251,245,234,0.6); display:block; margin-bottom:4px;}
 
-  /* ---------- Ticket (kitchen/counter view) ---------- */
   .ticket{
     background:var(--cream);
     color:var(--ink);
@@ -185,9 +178,7 @@
     font-weight:700;
   }
   .ticket .note{font-size:12.5px; font-style:italic; color:#7a6f61; margin-top:6px;}
-  .empty-state{
-    text-align:center; padding:50px 20px; color:rgba(251,245,234,0.5);
-  }
+  .empty-state{text-align:center; padding:50px 20px; color:rgba(251,245,234,0.5);}
   .empty-state .big{font-size:34px; margin-bottom:8px;}
 
   .menu-admin-row{display:flex; gap:8px; align-items:flex-end;}
@@ -196,6 +187,7 @@
     display:inline-block; font-size:11px; padding:2px 8px; border-radius:20px;
     background:rgba(110,143,75,0.2); color:var(--palm); font-weight:600;
   }
+  .badge.warn{background:rgba(225,85,43,0.2); color:var(--ember);}
   .toast{
     position:fixed; top:16px; left:50%; transform:translateX(-50%);
     background:var(--palm); color:#fff; padding:10px 18px; border-radius:10px;
@@ -207,61 +199,129 @@
   .setup-wrap{max-width:520px; margin:0 auto;}
   .steps{font-size:13px; line-height:1.6; color:rgba(251,245,234,0.75);}
   .steps b{color:var(--gold);}
-  a.link{color:var(--gold);}
+  .code-display{
+    font-family:'Fraunces',serif; font-size:22px; letter-spacing:2px;
+    background:var(--ink); border:1px dashed var(--gold); border-radius:10px;
+    padding:14px; text-align:center; color:var(--gold); margin:12px 0;
+    word-break:break-all;
+  }
+  .center-screen{
+    min-height:70vh; display:flex; flex-direction:column; justify-content:center;
+  }
+
+  /* ---------- Accès personnel (PIN) ---------- */
+  .staff-dot{
+    position:absolute; top:14px; right:16px; z-index:5;
+    width:22px; height:22px; border-radius:50%;
+    background:rgba(255,255,255,0.06);
+    display:flex; align-items:center; justify-content:center;
+    color:rgba(251,245,234,0.3); font-size:12px; cursor:pointer;
+  }
+  .pin-overlay{
+    position:fixed; inset:0; background:rgba(0,0,0,0.75);
+    display:flex; align-items:center; justify-content:center;
+    z-index:200; padding:20px;
+  }
+  .pin-box{
+    background:var(--ink-soft); border-radius:16px; padding:22px;
+    width:100%; max-width:300px; text-align:center;
+  }
+  .pin-box h3{margin-top:0; font-size:16px;}
+  .pin-dots{display:flex; justify-content:center; gap:12px; margin:16px 0;}
+  .pin-dots .d{
+    width:14px; height:14px; border-radius:50%; border:1px solid var(--gold);
+    background:transparent;
+  }
+  .pin-dots .d.filled{background:var(--gold);}
+  .pin-pad{display:grid; grid-template-columns:repeat(3,1fr); gap:10px;}
+  .pin-pad button{
+    padding:14px 0; border-radius:10px; border:1px solid rgba(255,255,255,0.15);
+    background:var(--ink); color:var(--cream); font-size:17px; cursor:pointer;
+  }
+  .pin-pad button:active{background:var(--ember); color:var(--ink);}
+
+  /* ---------- Bilan du jour ---------- */
+  .summary-card{
+    background:linear-gradient(135deg, var(--ember-deep), var(--ember));
+    border-radius:14px; padding:18px; margin-bottom:18px; color:var(--cream);
+  }
+  .summary-card .total{font-family:'Fraunces',serif; font-size:28px; font-weight:700;}
+  .summary-card .label{font-size:12px; opacity:0.85; text-transform:uppercase; letter-spacing:1px;}
+  .summary-card .row{display:flex; justify-content:space-between; margin-top:4px; font-size:13px;}
+  .summary-detail{margin-top:10px; font-size:12.5px;}
+  .summary-detail div{display:flex; justify-content:space-between; padding:3px 0; opacity:0.9;}
 </style>
 </head>
 <body>
 
 <header class="top">
-  <p class="tagline" id="tagline">Restaurant</p>
-  <h1 class="brand" id="brandName">LES MAMELLES</h1>
+  <div class="staff-dot" id="staffDot" onclick="openPinOverlay()" title="">●</div>
+  <p class="tagline" id="tagline">Commande à distance</p>
+  <h1 class="brand" id="brandName">Commande Facile</h1>
   <svg class="hills" viewBox="0 0 400 70" preserveAspectRatio="none">
     <path d="M0,70 L0,45 Q60,-10 120,45 Q150,20 180,45 Q240,-15 300,45 Q340,15 400,45 L400,70 Z" fill="#332B25"/>
     <path d="M0,70 L0,55 Q80,10 160,55 Q200,30 260,55 Q320,15 400,55 L400,70 Z" fill="#211C18"/>
   </svg>
 </header>
 
+<!-- ===================== OVERLAY PIN PERSONNEL ===================== -->
+<div class="pin-overlay hidden" id="pinOverlay">
+  <div class="pin-box">
+    <h3>Accès personnel</h3>
+    <div class="pin-dots" id="pinDots">
+      <span class="d"></span><span class="d"></span><span class="d"></span><span class="d"></span>
+    </div>
+    <div class="pin-pad">
+      <button onclick="pinPress('1')">1</button><button onclick="pinPress('2')">2</button><button onclick="pinPress('3')">3</button>
+      <button onclick="pinPress('4')">4</button><button onclick="pinPress('5')">5</button><button onclick="pinPress('6')">6</button>
+      <button onclick="pinPress('7')">7</button><button onclick="pinPress('8')">8</button><button onclick="pinPress('9')">9</button>
+      <button onclick="closePinOverlay()" style="color:var(--ember);">Annuler</button>
+      <button onclick="pinPress('0')">0</button>
+      <button onclick="pinBackspace()">⌫</button>
+    </div>
+    <p id="pinError" style="color:#ff8a65; font-size:12px; margin-top:10px; min-height:14px;"></p>
+  </div>
+</div>
+
 <main>
 
-  <!-- ===================== SETUP VIEW ===================== -->
-  <section id="view-setup" class="hidden">
-    <div class="setup-wrap">
-      <h2 style="font-size:19px;">Configuration initiale</h2>
-      <p class="steps">
-        Pour que les commandes soient visibles en temps réel sur tous les appareils (téléphone client, écran du comptoir),
-        l'outil a besoin d'une base <b>Firebase</b> (gratuite). Voici comment l'obtenir en quelques minutes :
+  <!-- ===================== ÉCRAN : CODE RESTAURANT (premier lancement) ===================== -->
+  <section id="view-tenant" class="hidden">
+    <div class="setup-wrap center-screen">
+      <h2 style="font-size:19px; text-align:center;">Bienvenue 👋</h2>
+      <p class="steps" style="text-align:center;">
+        Entrez le code restaurant qui vous a été transmis par votre fournisseur pour relier cet appareil à votre établissement.
       </p>
-      <p class="steps">
-        <b>1.</b> Allez sur <span style="color:var(--gold)">console.firebase.google.com</span> avec un compte Google.<br>
-        <b>2.</b> Cliquez sur « Ajouter un projet », donnez-lui un nom (ex : lesmamelles), continuez jusqu'à la création.<br>
-        <b>3.</b> Dans le projet, allez dans <b>Compilation → Realtime Database</b> → « Créer une base de données » → choisissez le mode <b>test</b>.<br>
-        <b>4.</b> Retournez à la page d'accueil du projet, cliquez sur l'icône <b>&lt;/&gt; (Web)</b> pour ajouter une application web, donnez-lui un nom.<br>
-        <b>5.</b> Firebase affiche un bloc de code avec des valeurs (apiKey, projectId, databaseURL...). Copiez chaque valeur dans les champs ci-dessous.
-      </p>
-
       <div class="card">
-        <label>apiKey</label>
-        <input id="cfg_apiKey" placeholder="AIzaSy...">
-        <label>authDomain</label>
-        <input id="cfg_authDomain" placeholder="lesmamelles.firebaseapp.com">
-        <label>databaseURL</label>
-        <input id="cfg_databaseURL" placeholder="https://lesmamelles-default-rtdb.firebaseio.com">
-        <label>projectId</label>
-        <input id="cfg_projectId" placeholder="lesmamelles">
-        <label>storageBucket</label>
-        <input id="cfg_storageBucket" placeholder="lesmamelles.appspot.com">
-        <label>messagingSenderId</label>
-        <input id="cfg_messagingSenderId" placeholder="1234567890">
-        <label>appId</label>
-        <input id="cfg_appId" placeholder="1:1234567890:web:abcdef">
-        <button class="btn full" onclick="saveFirebaseConfig()">Enregistrer et connecter</button>
-        <p id="setupError" style="color:#ff8a65; font-size:12.5px; margin-top:8px;"></p>
+        <label>Code restaurant</label>
+        <input id="tenantCodeInput" placeholder="Ex: ABCD1234" style="text-transform:uppercase;">
+        <button class="btn full" onclick="connectTenant()">Continuer</button>
+        <p id="tenantError" style="color:#ff8a65; font-size:12.5px; margin-top:8px;"></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== ÉCRAN : ESSAI EXPIRÉ / ACTIVATION ===================== -->
+  <section id="view-locked" class="hidden">
+    <div class="setup-wrap center-screen">
+      <h2 style="font-size:19px; text-align:center;">🔒 Période d'essai terminée</h2>
+      <p class="steps" style="text-align:center;">
+        Les 30 jours d'essai gratuit sont écoulés. Pour continuer à utiliser l'outil, envoyez le code appareil ci-dessous à votre fournisseur par WhatsApp, puis entrez le code d'activation qu'il vous enverra en retour.
+      </p>
+      <div class="card">
+        <label>Votre code appareil (à envoyer à votre fournisseur)</label>
+        <div class="code-display" id="deviceCodeDisplay">----</div>
+        <label>Code d'activation reçu</label>
+        <input id="activationCodeInput" placeholder="Ex: A1B2-C3D4" style="text-transform:uppercase;">
+        <button class="btn full" onclick="tryActivate()">Activer</button>
+        <p id="activationError" style="color:#ff8a65; font-size:12.5px; margin-top:8px;"></p>
       </div>
     </div>
   </section>
 
   <!-- ===================== CLIENT ORDER VIEW ===================== -->
   <section id="view-order" class="hidden">
+    <div id="trialBanner" class="hidden" style="font-size:12px; color:var(--gold); text-align:center; margin-bottom:10px;"></div>
     <div id="menuContainer"></div>
     <div id="emptyMenu" class="empty-state hidden">
       <div class="big">🍲</div>
@@ -275,6 +335,13 @@
 
   <!-- ===================== KITCHEN / COUNTER VIEW ===================== -->
   <section id="view-kitchen" class="hidden">
+    <div class="summary-card">
+      <div class="label">Bilan du jour</div>
+      <div class="total" id="dailyTotal">0 FCFA</div>
+      <div class="row"><span id="dailyOrderCount">0 commande validée</span></div>
+      <div class="summary-detail" id="dailyDetail"></div>
+    </div>
+
     <h2 style="font-size:18px; display:flex; align-items:center; justify-content:space-between;">
       Commandes en attente <span class="badge" id="pendingCount">0</span>
     </h2>
@@ -290,6 +357,12 @@
 
   <!-- ===================== SETTINGS VIEW ===================== -->
   <section id="view-settings" class="hidden">
+    <div class="card">
+      <h3 style="margin-top:0; font-size:15px;">Nom de l'établissement</h3>
+      <input id="restaurantNameInput" placeholder="Ex: LES MAMELLES">
+      <button class="btn small" onclick="saveRestaurantName()">Enregistrer le nom</button>
+    </div>
+
     <div class="card">
       <h3 style="margin-top:0; font-size:15px;">Numéro WhatsApp du restaurant</h3>
       <label>Format international, sans espace (ex: 22997000000)</label>
@@ -322,10 +395,18 @@
     <div class="section-title">Menu actuel</div>
     <div id="menuAdminContainer" class="card"></div>
 
-    <div class="section-title">Avancé</div>
     <div class="card">
-      <p style="font-size:12.5px; color:rgba(251,245,234,0.6);">Changer de base Firebase (réinitialise la connexion).</p>
-      <button class="btn secondary small" onclick="resetFirebaseConfig()">Reconfigurer Firebase</button>
+      <h3 style="margin-top:0; font-size:15px;">Code PIN du personnel</h3>
+      <label>4 chiffres — pour accéder à « Écran » et « Réglages »</label>
+      <input id="staffPinInput" placeholder="0000" maxlength="4" inputmode="numeric">
+      <button class="btn small" onclick="saveStaffPin()">Enregistrer le code PIN</button>
+    </div>
+
+    <div class="section-title">Informations</div>
+    <div class="card">
+      <p style="font-size:12.5px; color:rgba(251,245,234,0.6); margin:0 0 6px;">Code restaurant : <b id="tenantIdDisplay" style="color:var(--gold);"></b></p>
+      <p style="font-size:12.5px; color:rgba(251,245,234,0.6); margin:0 0 10px;" id="licenseStatusDisplay"></p>
+      <button class="btn secondary small" onclick="lockStaffAccess()">🔒 Verrouiller l'accès personnel</button>
     </div>
   </section>
 
@@ -339,14 +420,14 @@
   <button class="btn" style="background:var(--ink); color:var(--cream);" onclick="submitOrder()">Envoyer la commande</button>
 </div>
 
-<nav class="tabs" id="tabs">
+<nav class="tabs hidden" id="tabs">
   <button class="tab-btn active" data-view="order" onclick="switchView('order')">
     <span class="ico">🍽️</span>Commander
   </button>
-  <button class="tab-btn" data-view="kitchen" onclick="switchView('kitchen')">
+  <button class="tab-btn hidden staff-only" data-view="kitchen" onclick="switchView('kitchen')">
     <span class="ico">🖥️</span>Écran
   </button>
-  <button class="tab-btn" data-view="settings" onclick="switchView('settings')">
+  <button class="tab-btn hidden staff-only" data-view="settings" onclick="switchView('settings')">
     <span class="ico">⚙️</span>Réglages
   </button>
 </nav>
@@ -355,10 +436,27 @@
 
 <script>
 /* ============================================================
-   ÉTAT & STOCKAGE LOCAL
+   CONFIGURATION FIREBASE DU PRODUIT (partagée par tous les restaurants)
+   Ces valeurs sont fixes : c'est la base de données du produit
+   "Commande Facile", pas celle d'un restaurant en particulier.
 ============================================================ */
+const PRODUCT_FIREBASE_CONFIG = {
+  apiKey: "AIzaSyDMiRPGnk_GMEWnnN62ssOkH3hAV1_IxWE",
+  authDomain: "lesmamelles-commande-rapide.firebaseapp.com",
+  databaseURL: "https://lesmamelles-commande-rapide-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "lesmamelles-commande-rapide",
+  storageBucket: "lesmamelles-commande-rapide.firebasestorage.app",
+  messagingSenderId: "827726169276",
+  appId: "1:827726169276:web:466ed765c358d19f0b7cb9"
+};
+
+const TRIAL_DAYS = 30;
+const LICENSE_SECRET = "CmdFacile-2026-Benin"; // doit être identique dans l'outil admin
+
 let db = null;
-let cart = {}; // { itemId: {name, price, qty} }
+let tenantId = null;
+let tenantRef = null;
+let cart = {};
 let menuCache = {};
 let ordersCache = {};
 let currentView = 'order';
@@ -371,61 +469,205 @@ function toast(msg){
 }
 
 /* ============================================================
-   INITIALISATION FIREBASE
+   EMPREINTE APPAREIL & CODE D'ACTIVATION
 ============================================================ */
-function getStoredConfig(){
-  try{ return JSON.parse(localStorage.getItem('lm_firebase_config') || 'null'); }
-  catch(e){ return null; }
-}
-
-function saveFirebaseConfig(){
-  const cfg = {
-    apiKey: document.getElementById('cfg_apiKey').value.trim(),
-    authDomain: document.getElementById('cfg_authDomain').value.trim(),
-    databaseURL: document.getElementById('cfg_databaseURL').value.trim(),
-    projectId: document.getElementById('cfg_projectId').value.trim(),
-    storageBucket: document.getElementById('cfg_storageBucket').value.trim(),
-    messagingSenderId: document.getElementById('cfg_messagingSenderId').value.trim(),
-    appId: document.getElementById('cfg_appId').value.trim()
-  };
-  if(!cfg.apiKey || !cfg.databaseURL || !cfg.projectId){
-    document.getElementById('setupError').textContent = "Merci de remplir au minimum apiKey, databaseURL et projectId.";
-    return;
+function getDeviceFingerprint(){
+  let fp = localStorage.getItem('cf_device_fp');
+  if(!fp){
+    const raw = navigator.userAgent + '|' + screen.width + 'x' + screen.height + '|' + Date.now() + '|' + Math.random();
+    fp = simpleHash(raw).toString(36).toUpperCase();
+    localStorage.setItem('cf_device_fp', fp);
   }
-  localStorage.setItem('lm_firebase_config', JSON.stringify(cfg));
-  location.reload();
+  return fp;
 }
 
-function resetFirebaseConfig(){
-  if(confirm("Voulez-vous vraiment reconfigurer la connexion Firebase ?")){
-    localStorage.removeItem('lm_firebase_config');
-    location.reload();
+function simpleHash(str){
+  let hash = 0;
+  for(let i=0;i<str.length;i++){
+    hash = (hash*31 + str.charCodeAt(i)) >>> 0;
   }
+  return hash;
 }
 
+function computeActivationCode(tId, fingerprint){
+  const raw = tId + '|' + fingerprint + '|' + LICENSE_SECRET;
+  const h = simpleHash(raw).toString(36).toUpperCase().padStart(8,'0').slice(0,8);
+  return h.slice(0,4) + '-' + h.slice(4,8);
+}
+
+/* ============================================================
+   INITIALISATION
+============================================================ */
 function initApp(){
-  const cfg = getStoredConfig();
-  if(!cfg){
-    document.getElementById('view-setup').classList.remove('hidden');
-    document.getElementById('tabs').classList.add('hidden');
+  firebase.initializeApp(PRODUCT_FIREBASE_CONFIG);
+  db = firebase.database();
+
+  tenantId = localStorage.getItem('cf_tenant_id');
+  if(!tenantId){
+    document.getElementById('view-tenant').classList.remove('hidden');
     return;
   }
-  try{
-    firebase.initializeApp(cfg);
-    db = firebase.database();
-  }catch(e){
-    document.getElementById('view-setup').classList.remove('hidden');
-    document.getElementById('setupError').textContent = "Connexion impossible : " + e.message;
-    return;
+  bootTenant();
+}
+
+function connectTenant(){
+  const code = document.getElementById('tenantCodeInput').value.trim().toUpperCase();
+  if(!code){ return; }
+  db.ref('restaurants/'+code+'/info').once('value').then(snap=>{
+    if(!snap.exists()){
+      document.getElementById('tenantError').textContent = "Code restaurant introuvable. Vérifiez auprès de votre fournisseur.";
+      return;
+    }
+    localStorage.setItem('cf_tenant_id', code);
+    tenantId = code;
+    // Démarre l'essai si pas encore fait pour cet appareil (le point de départ officiel reste celui de l'info restaurant)
+    bootTenant();
+  }).catch(()=>{
+    document.getElementById('tenantError').textContent = "Connexion impossible, vérifiez votre connexion internet.";
+  });
+}
+
+function bootTenant(){
+  tenantRef = db.ref('restaurants/'+tenantId);
+  document.getElementById('tenantIdDisplay').textContent = tenantId;
+
+  tenantRef.child('info').once('value').then(snap=>{
+    const info = snap.val() || {};
+    checkLicense(info);
+  });
+}
+
+function checkLicense(info){
+  // Licence déjà activée pour cet appareil ?
+  const savedLicense = localStorage.getItem('cf_license_'+tenantId);
+  if(savedLicense){
+    const fp = getDeviceFingerprint();
+    if(savedLicense === computeActivationCode(tenantId, fp)){
+      startMainApp(info, null);
+      return;
+    }
   }
 
-  // Numéro whatsapp local
-  const wa = localStorage.getItem('lm_whatsapp') || '';
-  document.getElementById('whatsappNumber').value = wa;
+  // Sinon, vérifier l'essai
+  const trialStart = info.trialStart || Date.now();
+  if(!info.trialStart){
+    tenantRef.child('info/trialStart').set(trialStart);
+  }
+  const daysElapsed = (Date.now() - trialStart) / (1000*60*60*24);
+  const daysLeft = Math.max(0, Math.ceil(TRIAL_DAYS - daysElapsed));
+
+  if(daysElapsed >= TRIAL_DAYS){
+    showLockedScreen();
+  }else{
+    startMainApp(info, daysLeft);
+  }
+}
+
+function showLockedScreen(){
+  document.getElementById('view-locked').classList.remove('hidden');
+  document.getElementById('deviceCodeDisplay').textContent = getDeviceFingerprint();
+  document.getElementById('licenseStatusDisplay').textContent = "Statut : essai expiré, activation requise.";
+}
+
+function tryActivate(){
+  const entered = document.getElementById('activationCodeInput').value.trim().toUpperCase();
+  const fp = getDeviceFingerprint();
+  const expected = computeActivationCode(tenantId, fp);
+  if(entered === expected){
+    localStorage.setItem('cf_license_'+tenantId, entered);
+    document.getElementById('view-locked').classList.add('hidden');
+    tenantRef.child('info').once('value').then(snap=>{
+      startMainApp(snap.val() || {}, null);
+    });
+    toast("Application activée, merci !");
+  }else{
+    document.getElementById('activationError').textContent = "Code incorrect. Vérifiez avec votre fournisseur.";
+  }
+}
+
+function startMainApp(info, daysLeft){
+  document.getElementById('view-tenant').classList.add('hidden');
+  document.getElementById('view-locked').classList.add('hidden');
+  document.getElementById('tabs').classList.remove('hidden');
+
+  document.getElementById('brandName').textContent = info.name || 'Commande Facile';
+  document.getElementById('restaurantNameInput').value = info.name || '';
+  document.getElementById('whatsappNumber').value = info.whatsappNumber || '';
+
+  const banner = document.getElementById('trialBanner');
+  if(daysLeft !== null && daysLeft !== undefined){
+    banner.textContent = `Essai gratuit — ${daysLeft} jour${daysLeft>1?'s':''} restant${daysLeft>1?'s':''}`;
+    banner.classList.remove('hidden');
+    document.getElementById('licenseStatusDisplay').textContent = "Statut : période d'essai gratuit en cours.";
+  }else{
+    document.getElementById('licenseStatusDisplay').textContent = "Statut : application activée.";
+  }
 
   listenMenu();
   listenOrders();
   switchView('order');
+}
+
+/* ============================================================
+   ACCÈS PERSONNEL (PIN)
+============================================================ */
+let pinBuffer = '';
+let staffUnlocked = false;
+
+function openPinOverlay(){
+  pinBuffer = '';
+  updatePinDots();
+  document.getElementById('pinError').textContent = '';
+  document.getElementById('pinOverlay').classList.remove('hidden');
+}
+function closePinOverlay(){
+  document.getElementById('pinOverlay').classList.add('hidden');
+}
+function pinPress(digit){
+  if(pinBuffer.length>=4) return;
+  pinBuffer += digit;
+  updatePinDots();
+  if(pinBuffer.length===4){
+    setTimeout(checkStaffPin, 150);
+  }
+}
+function pinBackspace(){
+  pinBuffer = pinBuffer.slice(0,-1);
+  updatePinDots();
+}
+function updatePinDots(){
+  const dots = document.querySelectorAll('#pinDots .d');
+  dots.forEach((d,i)=> d.classList.toggle('filled', i < pinBuffer.length));
+}
+function checkStaffPin(){
+  tenantRef.child('info/staffPin').once('value').then(snap=>{
+    const expected = snap.val() || '0000';
+    if(pinBuffer === expected){
+      staffUnlocked = true;
+      document.querySelectorAll('.staff-only').forEach(el=>el.classList.remove('hidden'));
+      closePinOverlay();
+      toast("Accès personnel déverrouillé");
+    }else{
+      document.getElementById('pinError').textContent = "Code incorrect";
+      pinBuffer = '';
+      updatePinDots();
+    }
+  });
+}
+function lockStaffAccess(){
+  staffUnlocked = false;
+  document.querySelectorAll('.staff-only').forEach(el=>el.classList.add('hidden'));
+  switchView('order');
+  toast("Accès personnel verrouillé");
+}
+function saveStaffPin(){
+  const val = document.getElementById('staffPinInput').value.trim();
+  if(!/^\d{4}$/.test(val)){
+    toast("Le code PIN doit contenir exactement 4 chiffres");
+    return;
+  }
+  tenantRef.child('info/staffPin').set(val);
+  toast("Code PIN enregistré");
 }
 
 /* ============================================================
@@ -446,7 +688,7 @@ function switchView(view){
    MENU — LECTURE TEMPS RÉEL
 ============================================================ */
 function listenMenu(){
-  db.ref('menu').on('value', snap=>{
+  tenantRef.child('menu').on('value', snap=>{
     menuCache = snap.val() || {};
     renderMenuClient();
     renderMenuAdmin();
@@ -541,11 +783,11 @@ function submitOrder(){
   const total = items.reduce((s,it)=>s+it.price*it.qty,0);
   const note = document.getElementById('clientNote').value.trim();
 
-  const ticketRef = db.ref('counters/ticket');
+  const ticketRef = tenantRef.child('counters/ticket');
   ticketRef.transaction(current=>(current||0)+1, (err, committed, snap)=>{
     if(err){ toast("Erreur, réessayez."); return; }
     const ticketNumber = snap.val();
-    const orderRef = db.ref('orders').push();
+    const orderRef = tenantRef.child('orders').push();
     orderRef.set({
       ticketNumber,
       items,
@@ -565,8 +807,8 @@ function submitOrder(){
 }
 
 function sendWhatsapp(ticketNumber, items, total, note){
-  const number = localStorage.getItem('lm_whatsapp');
-  let text = `*Nouvelle commande #${ticketNumber} — LES MAMELLES*\n\n`;
+  const number = document.getElementById('whatsappNumber').value.trim();
+  let text = `*Nouvelle commande #${ticketNumber}*\n\n`;
   items.forEach(it=>{
     text += `• ${it.qty} x ${it.name} — ${formatFcfa(it.price*it.qty)}\n`;
   });
@@ -585,7 +827,7 @@ function sendWhatsapp(ticketNumber, items, total, note){
    ÉCRAN CENTRALISÉ (CUISINE / COMPTOIR)
 ============================================================ */
 function listenOrders(){
-  db.ref('orders').on('value', snap=>{
+  tenantRef.child('orders').on('value', snap=>{
     ordersCache = snap.val() || {};
     renderOrders();
   });
@@ -607,6 +849,42 @@ function renderOrders(){
   document.getElementById('ordersContainer').innerHTML = pending.map(o=>ticketHtml(o, true)).join('');
   document.getElementById('doneContainer').innerHTML = done.slice(0,15).map(o=>ticketHtml(o, false)).join('')
     || '<p style="font-size:13px; color:rgba(251,245,234,0.4);">Aucune commande validée récemment.</p>';
+
+  renderDailySummary(done);
+}
+
+function isSameDay(ts, ref){
+  const a = new Date(ts), b = new Date(ref);
+  return a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate();
+}
+
+function renderDailySummary(doneOrders){
+  const now = Date.now();
+  const todayOrders = doneOrders.filter(o => isSameDay(o.validatedAt || o.timestamp, now));
+
+  let total = 0;
+  const perItem = {};
+  todayOrders.forEach(o=>{
+    total += o.total;
+    o.items.forEach(it=>{
+      if(!perItem[it.name]) perItem[it.name] = {qty:0, revenue:0};
+      perItem[it.name].qty += it.qty;
+      perItem[it.name].revenue += it.qty * it.price;
+    });
+  });
+
+  document.getElementById('dailyTotal').textContent = formatFcfa(total);
+  document.getElementById('dailyOrderCount').textContent = todayOrders.length + (todayOrders.length>1 ? ' commandes validées' : ' commande validée');
+
+  const detailEl = document.getElementById('dailyDetail');
+  const items = Object.keys(perItem).sort((a,b)=>perItem[b].revenue-perItem[a].revenue);
+  if(items.length===0){
+    detailEl.innerHTML = '';
+  }else{
+    detailEl.innerHTML = items.map(name=>
+      `<div><span>${perItem[name].qty} x ${name}</span><span>${formatFcfa(perItem[name].revenue)}</span></div>`
+    ).join('');
+  }
 }
 
 function ticketHtml(o, pending){
@@ -624,22 +902,27 @@ function ticketHtml(o, pending){
 }
 
 function validateOrder(id){
-  db.ref('orders/'+id).update({status:'valide', validatedAt: Date.now()});
+  tenantRef.child('orders/'+id).update({status:'valide', validatedAt: Date.now()});
   toast("Commande validée");
 }
 
 /* ============================================================
-   RÉGLAGES — WHATSAPP
+   RÉGLAGES
 ============================================================ */
+function saveRestaurantName(){
+  const val = document.getElementById('restaurantNameInput').value.trim();
+  if(!val) return;
+  tenantRef.child('info/name').set(val);
+  document.getElementById('brandName').textContent = val;
+  toast("Nom enregistré");
+}
+
 function saveWhatsapp(){
   const val = document.getElementById('whatsappNumber').value.trim();
-  localStorage.setItem('lm_whatsapp', val);
+  tenantRef.child('info/whatsappNumber').set(val);
   toast("Numéro enregistré");
 }
 
-/* ============================================================
-   RÉGLAGES — MENU (ADMIN)
-============================================================ */
 function addMenuItem(){
   const name = document.getElementById('newItemName').value.trim();
   const price = parseFloat(document.getElementById('newItemPrice').value);
@@ -648,7 +931,7 @@ function addMenuItem(){
     toast("Merci de renseigner un nom et un prix valide.");
     return;
   }
-  db.ref('menu').push({name, price, category});
+  tenantRef.child('menu').push({name, price, category});
   document.getElementById('newItemName').value='';
   document.getElementById('newItemPrice').value='';
   toast("Plat ajouté au menu");
@@ -676,7 +959,7 @@ function renderMenuAdmin(){
 
 function deleteMenuItem(id){
   if(confirm("Retirer ce plat du menu ?")){
-    db.ref('menu/'+id).remove();
+    tenantRef.child('menu/'+id).remove();
     toast("Plat retiré");
   }
 }
