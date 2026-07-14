@@ -9,15 +9,28 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <style>
-  :root{
-    --ink:#211C18;
-    --ink-soft:#332B25;
+  :root, [data-theme="night"]{
+    --ink:#16241A;
+    --ink-soft:#1F3327;
     --ember:#E1552B;
     --ember-deep:#B33F1F;
-    --palm:#6E8F4B;
+    --palm:#7FAF5B;
     --gold:#D6A54C;
     --cream:#FBF5EA;
     --cream-dim:#EFE6D6;
+    --text-rgb:251,245,234;
+    --radius:14px;
+  }
+  [data-theme="day"]{
+    --ink:#F6C744;
+    --ink-soft:#FBE49B;
+    --ember:#C2431E;
+    --ember-deep:#8F3115;
+    --palm:#3F6B27;
+    --gold:#8A5A12;
+    --cream:#2B2216;
+    --cream-dim:#4A3B28;
+    --text-rgb:43,34,22;
     --radius:14px;
   }
   *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
@@ -73,7 +86,7 @@
   nav.tabs button{
     flex:1;
     background:none; border:none;
-    color:rgba(251,245,234,0.55);
+    color:rgba(var(--text-rgb),0.55);
     font-family:'Inter',sans-serif;
     font-size:12px;
     padding:12px 4px 10px;
@@ -153,11 +166,11 @@
     font-size:14px;
     margin-bottom:10px;
   }
-  label{font-size:12px; color:rgba(251,245,234,0.6); display:block; margin-bottom:4px;}
+  label{font-size:12px; color:rgba(var(--text-rgb),0.6); display:block; margin-bottom:4px;}
 
   .ticket{
-    background:var(--cream);
-    color:var(--ink);
+    background:#FBF5EA;
+    color:#211C18;
     border-radius:var(--radius);
     padding:16px;
     margin-bottom:14px;
@@ -178,7 +191,7 @@
     font-weight:700;
   }
   .ticket .note{font-size:12.5px; font-style:italic; color:#7a6f61; margin-top:6px;}
-  .empty-state{text-align:center; padding:50px 20px; color:rgba(251,245,234,0.5);}
+  .empty-state{text-align:center; padding:50px 20px; color:rgba(var(--text-rgb),0.5);}
   .empty-state .big{font-size:34px; margin-bottom:8px;}
 
   .menu-admin-row{display:flex; gap:8px; align-items:flex-end;}
@@ -197,7 +210,7 @@
   .toast.show{opacity:1;}
   .hidden{display:none !important;}
   .setup-wrap{max-width:520px; margin:0 auto;}
-  .steps{font-size:13px; line-height:1.6; color:rgba(251,245,234,0.75);}
+  .steps{font-size:13px; line-height:1.6; color:rgba(var(--text-rgb),0.75);}
   .steps b{color:var(--gold);}
   .code-display{
     font-family:'Fraunces',serif; font-size:22px; letter-spacing:2px;
@@ -209,15 +222,34 @@
     min-height:70vh; display:flex; flex-direction:column; justify-content:center;
   }
 
+  .order-type-row{display:flex; gap:8px;}
+  .order-type-btn{
+    flex:1; padding:12px 6px; border-radius:10px;
+    border:1px solid rgba(255,255,255,0.15);
+    background:transparent; color:var(--cream);
+    font-family:'Inter',sans-serif; font-size:13.5px; font-weight:500;
+    cursor:pointer;
+  }
+  .order-type-btn.active{
+    background:var(--ember); border-color:var(--ember); color:var(--ink);
+    font-weight:700;
+  }
   /* ---------- Accès personnel (PIN) ---------- */
   .staff-dot{
     position:absolute; top:6px; right:6px; z-index:5;
     width:44px; height:44px; border-radius:50%;
     background:transparent;
     display:flex; align-items:center; justify-content:center;
-    color:rgba(251,245,234,0.35); font-size:14px; cursor:pointer;
+    color:rgba(var(--text-rgb),0.35); font-size:14px; cursor:pointer;
   }
   .staff-dot:active{background:rgba(255,255,255,0.08);}
+  .theme-toggle{
+    position:absolute; top:6px; left:6px; z-index:5;
+    width:40px; height:40px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    font-size:17px; cursor:pointer;
+  }
+  .theme-toggle:active{background:rgba(255,255,255,0.08);}
   .pin-overlay{
     position:fixed; inset:0; background:rgba(0,0,0,0.75);
     display:flex; align-items:center; justify-content:center;
@@ -244,7 +276,7 @@
   /* ---------- Bilan du jour ---------- */
   .summary-card{
     background:linear-gradient(135deg, var(--ember-deep), var(--ember));
-    border-radius:14px; padding:18px; margin-bottom:18px; color:var(--cream);
+    border-radius:14px; padding:18px; margin-bottom:18px; color:#FBF5EA;
   }
   .summary-card .total{font-family:'Fraunces',serif; font-size:28px; font-weight:700;}
   .summary-card .label{font-size:12px; opacity:0.85; text-transform:uppercase; letter-spacing:1px;}
@@ -256,6 +288,7 @@
 <body>
 
 <header class="top">
+  <div class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Changer de thème">☀️</div>
   <div class="staff-dot" id="staffDot" onclick="openPinOverlay()" title="">●</div>
   <p class="tagline" id="tagline">Commande à distance</p>
   <h1 class="brand" id="brandName">Commande Facile</h1>
@@ -323,6 +356,20 @@
   <!-- ===================== CLIENT ORDER VIEW ===================== -->
   <section id="view-order" class="hidden">
     <div id="trialBanner" class="hidden" style="font-size:12px; color:var(--gold); text-align:center; margin-bottom:10px;"></div>
+
+    <div class="card">
+      <label>Où êtes-vous ?</label>
+      <div class="order-type-row">
+        <button type="button" class="order-type-btn active" id="btnOnSite" onclick="setOrderType('sur_place')">🍽️ Sur place</button>
+        <button type="button" class="order-type-btn" id="btnRemote" onclick="setOrderType('distance')">📍 À distance</button>
+      </div>
+      <div id="tableSelectWrap" style="margin-top:12px;">
+        <label>Votre table</label>
+        <select id="tableSelect"></select>
+        <p id="noTablesMsg" class="hidden" style="font-size:12px; color:rgba(var(--text-rgb),0.5); margin:-4px 0 0;">Aucune table configurée — demandez au personnel.</p>
+      </div>
+    </div>
+
     <div id="menuContainer"></div>
     <div id="emptyMenu" class="empty-state hidden">
       <div class="big">🍲</div>
@@ -396,6 +443,18 @@
     <div class="section-title">Menu actuel</div>
     <div id="menuAdminContainer" class="card"></div>
 
+    <div class="section-title">Gérer les tables</div>
+    <div class="card">
+      <label>Nom de la table</label>
+      <div class="menu-admin-row">
+        <div class="grow">
+          <input id="newTableName" placeholder="Ex: Table 1">
+        </div>
+        <button class="btn small" style="width:auto;" onclick="addTable()">Ajouter</button>
+      </div>
+      <div id="tableAdminContainer" style="margin-top:8px;"></div>
+    </div>
+
     <div class="card">
       <h3 style="margin-top:0; font-size:15px;">Code PIN du personnel</h3>
       <label>4 chiffres — pour accéder à « Écran » et « Réglages »</label>
@@ -405,8 +464,8 @@
 
     <div class="section-title">Informations</div>
     <div class="card">
-      <p style="font-size:12.5px; color:rgba(251,245,234,0.6); margin:0 0 6px;">Code restaurant : <b id="tenantIdDisplay" style="color:var(--gold);"></b></p>
-      <p style="font-size:12.5px; color:rgba(251,245,234,0.6); margin:0 0 10px;" id="licenseStatusDisplay"></p>
+      <p style="font-size:12.5px; color:rgba(var(--text-rgb),0.6); margin:0 0 6px;">Code restaurant : <b id="tenantIdDisplay" style="color:var(--gold);"></b></p>
+      <p style="font-size:12.5px; color:rgba(var(--text-rgb),0.6); margin:0 0 10px;" id="licenseStatusDisplay"></p>
       <button class="btn secondary small" onclick="lockStaffAccess()">🔒 Verrouiller l'accès personnel</button>
     </div>
   </section>
@@ -436,6 +495,20 @@
 <div class="toast" id="toast"></div>
 
 <script>
+/* ============================================================
+   THÈME JOUR / NUIT
+============================================================ */
+function applyTheme(theme){
+  document.documentElement.setAttribute('data-theme', theme);
+  document.getElementById('themeToggle').textContent = theme==='day' ? '☀️' : '🌙';
+  localStorage.setItem('cf_theme', theme);
+}
+function toggleTheme(){
+  const current = localStorage.getItem('cf_theme') || 'night';
+  applyTheme(current==='day' ? 'night' : 'day');
+}
+applyTheme(localStorage.getItem('cf_theme') || 'night');
+
 /* ============================================================
    CONFIGURATION FIREBASE DU PRODUIT (partagée par tous les restaurants)
    Ces valeurs sont fixes : c'est la base de données du produit
@@ -606,6 +679,7 @@ function startMainApp(info, daysLeft){
 
   listenMenu();
   listenOrders();
+  listenTables();
   switchView('order');
 }
 
@@ -774,15 +848,91 @@ function updateCartBar(){
 }
 
 /* ============================================================
+   TYPE DE COMMANDE (SUR PLACE / À DISTANCE) & TABLES
+============================================================ */
+let orderType = 'sur_place';
+let tablesCache = {};
+
+function setOrderType(type){
+  orderType = type;
+  document.getElementById('btnOnSite').classList.toggle('active', type==='sur_place');
+  document.getElementById('btnRemote').classList.toggle('active', type==='distance');
+  document.getElementById('tableSelectWrap').classList.toggle('hidden', type!=='sur_place');
+}
+
+function listenTables(){
+  tenantRef.child('tables').on('value', snap=>{
+    tablesCache = snap.val() || {};
+    renderTableSelect();
+    renderTablesAdmin();
+  });
+}
+
+function renderTableSelect(){
+  const select = document.getElementById('tableSelect');
+  const ids = Object.keys(tablesCache);
+  const noMsg = document.getElementById('noTablesMsg');
+  if(ids.length===0){
+    select.innerHTML = '';
+    select.classList.add('hidden');
+    noMsg.classList.remove('hidden');
+    return;
+  }
+  select.classList.remove('hidden');
+  noMsg.classList.add('hidden');
+  select.innerHTML = ids.map(id=>`<option value="${id}">${tablesCache[id].name}</option>`).join('');
+}
+
+function addTable(){
+  const name = document.getElementById('newTableName').value.trim();
+  if(!name){ toast("Entrez un nom de table."); return; }
+  tenantRef.child('tables').push({name});
+  document.getElementById('newTableName').value='';
+  toast("Table ajoutée");
+}
+
+function renderTablesAdmin(){
+  const container = document.getElementById('tableAdminContainer');
+  const ids = Object.keys(tablesCache);
+  if(ids.length===0){
+    container.innerHTML = '<p style="font-size:13px; color:rgba(var(--text-rgb),0.5);">Aucune table pour le moment.</p>';
+    return;
+  }
+  container.innerHTML = ids.map(id=>`
+    <div class="item-row">
+      <div class="item-info"><div class="name">${tablesCache[id].name}</div></div>
+      <button class="btn ghost small" onclick="deleteTable('${id}')">Retirer</button>
+    </div>`).join('');
+}
+
+function deleteTable(id){
+  if(confirm("Retirer cette table ?")){
+    tenantRef.child('tables/'+id).remove();
+    toast("Table retirée");
+  }
+}
+
+/* ============================================================
    ENVOI DE COMMANDE
 ============================================================ */
 function submitOrder(){
   const ids = Object.keys(cart);
   if(ids.length===0) return;
 
+  if(orderType==='sur_place' && Object.keys(tablesCache).length>0){
+    const selectedId = document.getElementById('tableSelect').value;
+    if(!selectedId){ toast("Merci de choisir votre table."); return; }
+  }
+
   const items = ids.map(id=>({name:cart[id].name, price:cart[id].price, qty:cart[id].qty}));
   const total = items.reduce((s,it)=>s+it.price*it.qty,0);
   const note = document.getElementById('clientNote').value.trim();
+
+  let tableName = null;
+  if(orderType==='sur_place'){
+    const selectedId = document.getElementById('tableSelect').value;
+    tableName = selectedId && tablesCache[selectedId] ? tablesCache[selectedId].name : null;
+  }
 
   const ticketRef = tenantRef.child('counters/ticket');
   ticketRef.transaction(current=>(current||0)+1, (err, committed, snap)=>{
@@ -794,10 +944,12 @@ function submitOrder(){
       items,
       total,
       note: note || null,
+      orderType,
+      tableName,
       status: 'en_attente',
       timestamp: Date.now()
     }).then(()=>{
-      sendWhatsapp(ticketNumber, items, total, note);
+      sendWhatsapp(ticketNumber, items, total, note, tableName);
       cart = {};
       document.getElementById('clientNote').value='';
       renderMenuClient();
@@ -807,9 +959,10 @@ function submitOrder(){
   });
 }
 
-function sendWhatsapp(ticketNumber, items, total, note){
+function sendWhatsapp(ticketNumber, items, total, note, tableName){
   const number = document.getElementById('whatsappNumber').value.trim();
-  let text = `*Nouvelle commande #${ticketNumber}*\n\n`;
+  let text = `*Nouvelle commande #${ticketNumber}*\n`;
+  text += tableName ? `📍 ${tableName}\n\n` : `📍 Commande à distance\n\n`;
   items.forEach(it=>{
     text += `• ${it.qty} x ${it.name} — ${formatFcfa(it.price*it.qty)}\n`;
   });
@@ -849,7 +1002,7 @@ function renderOrders(){
 
   document.getElementById('ordersContainer').innerHTML = pending.map(o=>ticketHtml(o, true)).join('');
   document.getElementById('doneContainer').innerHTML = done.slice(0,15).map(o=>ticketHtml(o, false)).join('')
-    || '<p style="font-size:13px; color:rgba(251,245,234,0.4);">Aucune commande validée récemment.</p>';
+    || '<p style="font-size:13px; color:rgba(var(--text-rgb),0.4);">Aucune commande validée récemment.</p>';
 
   renderDailySummary(done);
 }
@@ -891,10 +1044,18 @@ function renderDailySummary(doneOrders){
 function ticketHtml(o, pending){
   const time = new Date(o.timestamp).toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
   const itemsHtml = o.items.map(it=>`<li><span>${it.qty} x ${it.name}</span><span>${formatFcfa(it.price*it.qty)}</span></li>`).join('');
+  const locationBadge = o.tableName
+    ? `<span class="badge" style="background:rgba(194,67,30,0.15); color:#B33F1F;">📍 ${o.tableName}</span>`
+    : `<span class="badge">📍 À distance</span>`;
   return `
     <div class="ticket">
-      <div class="tnum">#${o.ticketNumber}</div>
-      <div class="time">${time}</div>
+      <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+        <div>
+          <div class="tnum">#${o.ticketNumber}</div>
+          <div class="time">${time}</div>
+        </div>
+        ${locationBadge}
+      </div>
       <ul>${itemsHtml}</ul>
       <div class="total-row"><span>Total</span><span>${formatFcfa(o.total)}</span></div>
       ${o.note ? `<div class="note">Note : ${o.note}</div>` : ''}
@@ -942,7 +1103,7 @@ function renderMenuAdmin(){
   const container = document.getElementById('menuAdminContainer');
   const ids = Object.keys(menuCache);
   if(ids.length===0){
-    container.innerHTML = '<p style="font-size:13px; color:rgba(251,245,234,0.5);">Aucun plat pour le moment.</p>';
+    container.innerHTML = '<p style="font-size:13px; color:rgba(var(--text-rgb),0.5);">Aucun plat pour le moment.</p>';
     return;
   }
   container.innerHTML = ids.map(id=>{
