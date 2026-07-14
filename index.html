@@ -4,6 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Commande Facile</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="theme-color" content="#16241A">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Commande Facile">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -356,6 +363,7 @@
   <!-- ===================== CLIENT ORDER VIEW ===================== -->
   <section id="view-order" class="hidden">
     <div id="trialBanner" class="hidden" style="font-size:12px; color:var(--gold); text-align:center; margin-bottom:10px;"></div>
+    <button id="installBtn" class="btn secondary full hidden" style="margin-bottom:14px;" onclick="installApp()">📲 Installer l'application sur cet écran</button>
 
     <div class="card">
       <label>Où êtes-vous ?</label>
@@ -383,13 +391,6 @@
 
   <!-- ===================== KITCHEN / COUNTER VIEW ===================== -->
   <section id="view-kitchen" class="hidden">
-    <div class="summary-card">
-      <div class="label">Bilan du jour</div>
-      <div class="total" id="dailyTotal">0 FCFA</div>
-      <div class="row"><span id="dailyOrderCount">0 commande validée</span></div>
-      <div class="summary-detail" id="dailyDetail"></div>
-    </div>
-
     <h2 style="font-size:18px; display:flex; align-items:center; justify-content:space-between;">
       Commandes en attente <span class="badge" id="pendingCount">0</span>
     </h2>
@@ -401,6 +402,25 @@
 
     <div class="section-title">Historique récent (validées)</div>
     <div id="doneContainer"></div>
+  </section>
+
+  <!-- ===================== BILAN FINANCIER (PROPRIÉTAIRE) ===================== -->
+  <section id="view-bilan" class="hidden">
+    <div class="summary-card">
+      <div class="label" id="bilanDateLabel">Bilan du jour</div>
+      <div class="total" id="dailyTotal">0 FCFA</div>
+      <div class="row"><span id="dailyOrderCount">0 commande validée</span></div>
+      <div class="summary-detail" style="margin-top:12px; border-top:1px solid rgba(255,255,255,0.2); padding-top:10px;">
+        <div><span>🍲 Plats</span><span id="catPlats">0 FCFA</span></div>
+        <div><span>🥤 Boissons</span><span id="catBoissons">0 FCFA</span></div>
+        <div><span>🥗 Entrées</span><span id="catEntrees">0 FCFA</span></div>
+        <div><span>🍰 Desserts</span><span id="catDesserts">0 FCFA</span></div>
+      </div>
+      <div class="summary-detail" id="dailyDetail"></div>
+    </div>
+
+    <div class="section-title">Historique des jours</div>
+    <div id="bilanHistoryContainer" class="card"></div>
   </section>
 
   <!-- ===================== SETTINGS VIEW ===================== -->
@@ -462,6 +482,13 @@
       <button class="btn small" onclick="saveStaffPin()">Enregistrer le code PIN</button>
     </div>
 
+    <div class="card">
+      <h3 style="margin-top:0; font-size:15px;">Code PIN du propriétaire</h3>
+      <label>4 chiffres — différent du code personnel, donne accès au Bilan financier</label>
+      <input id="ownerPinInput" placeholder="0000" maxlength="4" inputmode="numeric">
+      <button class="btn small" onclick="saveOwnerPin()">Enregistrer le code PIN</button>
+    </div>
+
     <div class="section-title">Informations</div>
     <div class="card">
       <p style="font-size:12.5px; color:rgba(var(--text-rgb),0.6); margin:0 0 6px;">Code restaurant : <b id="tenantIdDisplay" style="color:var(--gold);"></b></p>
@@ -490,11 +517,44 @@
   <button class="tab-btn hidden staff-only" data-view="settings" onclick="switchView('settings')">
     <span class="ico">⚙️</span>Réglages
   </button>
+  <button class="tab-btn hidden owner-only" data-view="bilan" onclick="switchView('bilan')">
+    <span class="ico">💰</span>Bilan
+  </button>
 </nav>
 
 <div class="toast" id="toast"></div>
 
 <script>
+/* ============================================================
+   INSTALLATION SUR ÉCRAN D'ACCUEIL (PWA)
+============================================================ */
+let deferredInstallPrompt = null;
+
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('sw.js').catch(()=>{});
+}
+
+window.addEventListener('beforeinstallprompt', (e)=>{
+  e.preventDefault();
+  deferredInstallPrompt = e;
+  const btn = document.getElementById('installBtn');
+  if(btn) btn.classList.remove('hidden');
+});
+
+function installApp(){
+  if(!deferredInstallPrompt) return;
+  deferredInstallPrompt.prompt();
+  deferredInstallPrompt.userChoice.then(()=>{
+    deferredInstallPrompt = null;
+    document.getElementById('installBtn').classList.add('hidden');
+  });
+}
+
+window.addEventListener('appinstalled', ()=>{
+  document.getElementById('installBtn').classList.add('hidden');
+  toast("Application installée !");
+});
+
 /* ============================================================
    THÈME JOUR / NUIT
 ============================================================ */
@@ -688,6 +748,7 @@ function startMainApp(info, daysLeft){
 ============================================================ */
 let pinBuffer = '';
 let staffUnlocked = false;
+let ownerUnlocked = false;
 
 function openPinOverlay(){
   pinBuffer = '';
@@ -715,9 +776,18 @@ function updatePinDots(){
   dots.forEach((d,i)=> d.classList.toggle('filled', i < pinBuffer.length));
 }
 function checkStaffPin(){
-  tenantRef.child('info/staffPin').once('value').then(snap=>{
-    const expected = snap.val() || '0000';
-    if(pinBuffer === expected){
+  tenantRef.child('info').once('value').then(snap=>{
+    const info = snap.val() || {};
+    const staffPin = info.staffPin || '0000';
+    const ownerPin = info.ownerPin || '1111';
+
+    if(pinBuffer === ownerPin){
+      staffUnlocked = true;
+      ownerUnlocked = true;
+      document.querySelectorAll('.staff-only, .owner-only').forEach(el=>el.classList.remove('hidden'));
+      closePinOverlay();
+      toast("Accès propriétaire déverrouillé");
+    }else if(pinBuffer === staffPin){
       staffUnlocked = true;
       document.querySelectorAll('.staff-only').forEach(el=>el.classList.remove('hidden'));
       closePinOverlay();
@@ -731,9 +801,10 @@ function checkStaffPin(){
 }
 function lockStaffAccess(){
   staffUnlocked = false;
-  document.querySelectorAll('.staff-only').forEach(el=>el.classList.add('hidden'));
+  ownerUnlocked = false;
+  document.querySelectorAll('.staff-only, .owner-only').forEach(el=>el.classList.add('hidden'));
   switchView('order');
-  toast("Accès personnel verrouillé");
+  toast("Accès verrouillé");
 }
 function saveStaffPin(){
   const val = document.getElementById('staffPinInput').value.trim();
@@ -744,19 +815,32 @@ function saveStaffPin(){
   tenantRef.child('info/staffPin').set(val);
   toast("Code PIN enregistré");
 }
+function saveOwnerPin(){
+  const val = document.getElementById('ownerPinInput').value.trim();
+  if(!/^\d{4}$/.test(val)){
+    toast("Le code PIN doit contenir exactement 4 chiffres");
+    return;
+  }
+  tenantRef.child('info/ownerPin').set(val);
+  toast("Code PIN propriétaire enregistré");
+}
 
 /* ============================================================
    NAVIGATION
 ============================================================ */
 function switchView(view){
   currentView = view;
-  ['order','kitchen','settings'].forEach(v=>{
+  ['order','kitchen','settings','bilan'].forEach(v=>{
     document.getElementById('view-'+v).classList.toggle('hidden', v!==view);
   });
   document.querySelectorAll('.tab-btn').forEach(b=>{
     b.classList.toggle('active', b.dataset.view===view);
   });
   document.getElementById('cartBar').classList.toggle('hidden', view!=='order' || Object.keys(cart).length===0);
+  if(view==='bilan'){
+    selectedBilanDay = todayKey();
+    renderBilan();
+  }
 }
 
 /* ============================================================
@@ -924,7 +1008,7 @@ function submitOrder(){
     if(!selectedId){ toast("Merci de choisir votre table."); return; }
   }
 
-  const items = ids.map(id=>({name:cart[id].name, price:cart[id].price, qty:cart[id].qty}));
+  const items = ids.map(id=>({name:cart[id].name, price:cart[id].price, qty:cart[id].qty, category: (menuCache[id]&&menuCache[id].category) || 'Autres'}));
   const total = items.reduce((s,it)=>s+it.price*it.qty,0);
   const note = document.getElementById('clientNote').value.trim();
 
@@ -1004,41 +1088,83 @@ function renderOrders(){
   document.getElementById('doneContainer').innerHTML = done.slice(0,15).map(o=>ticketHtml(o, false)).join('')
     || '<p style="font-size:13px; color:rgba(var(--text-rgb),0.4);">Aucune commande validée récemment.</p>';
 
-  renderDailySummary(done);
+  if(currentView==='bilan') renderBilan();
 }
 
-function isSameDay(ts, ref){
-  const a = new Date(ts), b = new Date(ref);
-  return a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate();
+let selectedBilanDay = null;
+
+function dayKey(ts){
+  const d = new Date(ts);
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+function todayKey(){ return dayKey(Date.now()); }
+function formatDayLabel(key){
+  if(key===todayKey()) return "Bilan du jour (aujourd'hui)";
+  const [y,m,d] = key.split('-');
+  return "Bilan du " + d + '/' + m + '/' + y;
 }
 
-function renderDailySummary(doneOrders){
-  const now = Date.now();
-  const todayOrders = doneOrders.filter(o => isSameDay(o.validatedAt || o.timestamp, now));
+function renderBilan(){
+  if(!selectedBilanDay) selectedBilanDay = todayKey();
 
-  let total = 0;
+  const doneOrders = Object.values(ordersCache).filter(o=>o.status==='valide');
+  const byDay = {};
+  doneOrders.forEach(o=>{
+    const key = dayKey(o.validatedAt || o.timestamp);
+    if(!byDay[key]) byDay[key] = [];
+    byDay[key].push(o);
+  });
+
+  // Historique
+  const dayKeys = Object.keys(byDay).sort((a,b)=> b.localeCompare(a));
+  const historyEl = document.getElementById('bilanHistoryContainer');
+  if(dayKeys.length===0){
+    historyEl.innerHTML = '<p style="font-size:13px; color:rgba(var(--text-rgb),0.5);">Aucune commande validée pour le moment.</p>';
+  }else{
+    historyEl.innerHTML = dayKeys.map(key=>{
+      const dayTotal = byDay[key].reduce((s,o)=>s+o.total,0);
+      const active = key===selectedBilanDay;
+      return `<div class="item-row" style="cursor:pointer; ${active?'opacity:1;':'opacity:0.7;'}" onclick="selectBilanDay('${key}')">
+        <div class="item-info"><div class="name">${formatDayLabel(key).replace("Bilan du ","")}</div></div>
+        <div class="price" style="color:${active?'var(--gold)':'inherit'}; font-weight:${active?700:400};">${formatFcfa(dayTotal)}</div>
+      </div>`;
+    }).join('');
+  }
+
+  // Détail du jour sélectionné
+  const dayOrders = byDay[selectedBilanDay] || [];
+  const catTotals = {Plats:0, Boissons:0, Entrées:0, Desserts:0};
   const perItem = {};
-  todayOrders.forEach(o=>{
+  let total = 0;
+  dayOrders.forEach(o=>{
     total += o.total;
     o.items.forEach(it=>{
+      const cat = catTotals.hasOwnProperty(it.category) ? it.category : 'Plats';
+      catTotals[cat] += it.qty*it.price;
       if(!perItem[it.name]) perItem[it.name] = {qty:0, revenue:0};
       perItem[it.name].qty += it.qty;
-      perItem[it.name].revenue += it.qty * it.price;
+      perItem[it.name].revenue += it.qty*it.price;
     });
   });
 
+  document.getElementById('bilanDateLabel').textContent = formatDayLabel(selectedBilanDay);
   document.getElementById('dailyTotal').textContent = formatFcfa(total);
-  document.getElementById('dailyOrderCount').textContent = todayOrders.length + (todayOrders.length>1 ? ' commandes validées' : ' commande validée');
+  document.getElementById('dailyOrderCount').textContent = dayOrders.length + (dayOrders.length>1 ? ' commandes validées' : ' commande validée');
+  document.getElementById('catPlats').textContent = formatFcfa(catTotals.Plats);
+  document.getElementById('catBoissons').textContent = formatFcfa(catTotals.Boissons);
+  document.getElementById('catEntrees').textContent = formatFcfa(catTotals['Entrées']);
+  document.getElementById('catDesserts').textContent = formatFcfa(catTotals.Desserts);
 
   const detailEl = document.getElementById('dailyDetail');
-  const items = Object.keys(perItem).sort((a,b)=>perItem[b].revenue-perItem[a].revenue);
-  if(items.length===0){
-    detailEl.innerHTML = '';
-  }else{
-    detailEl.innerHTML = items.map(name=>
-      `<div><span>${perItem[name].qty} x ${name}</span><span>${formatFcfa(perItem[name].revenue)}</span></div>`
-    ).join('');
-  }
+  const itemNames = Object.keys(perItem).sort((a,b)=>perItem[b].revenue-perItem[a].revenue);
+  detailEl.innerHTML = itemNames.length===0 ? '' : itemNames.map(name=>
+    `<div><span>${perItem[name].qty} x ${name}</span><span>${formatFcfa(perItem[name].revenue)}</span></div>`
+  ).join('');
+}
+
+function selectBilanDay(key){
+  selectedBilanDay = key;
+  renderBilan();
 }
 
 function ticketHtml(o, pending){
