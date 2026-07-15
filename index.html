@@ -401,6 +401,7 @@
     </div>
 
     <div class="section-title">Historique récent (validées)</div>
+    <button class="btn secondary small" style="margin-bottom:10px;" onclick="deleteAllValidated()">🗑️ Supprimer tout l'historique validé</button>
     <div id="doneContainer"></div>
   </section>
 
@@ -420,6 +421,8 @@
     </div>
 
     <div class="section-title">Historique des jours</div>
+    <button class="btn secondary small" style="margin-bottom:10px;" onclick="deleteBilanDay()">🗑️ Supprimer le bilan affiché</button>
+    <button class="btn ghost small" style="margin-bottom:10px; margin-left:8px;" onclick="deleteAllBilanHistory()">🗑️ Supprimer tout l'historique financier</button>
     <div id="bilanHistoryContainer" class="card"></div>
   </section>
 
@@ -1061,6 +1064,17 @@ function sendWhatsapp(ticketNumber, items, total, note, tableName){
   }
 }
 
+function deleteAllValidated(){
+  const doneIds = Object.keys(ordersCache).filter(id=>ordersCache[id].status==='valide');
+  if(doneIds.length===0){ toast("Aucune commande validée à supprimer."); return; }
+  if(confirm(`Supprimer définitivement ${doneIds.length} commande(s) validée(s) ? Cette action est irréversible.`)){
+    const updates = {};
+    doneIds.forEach(id=> updates['orders/'+id] = null);
+    tenantRef.update(updates);
+    toast("Historique supprimé");
+  }
+}
+
 /* ============================================================
    ÉCRAN CENTRALISÉ (CUISINE / COMPTOIR)
 ============================================================ */
@@ -1167,6 +1181,28 @@ function selectBilanDay(key){
   renderBilan();
 }
 
+function deleteBilanDay(){
+  const doneOrders = Object.entries(ordersCache).filter(([id,o])=>o.status==='valide' && dayKey(o.validatedAt||o.timestamp)===selectedBilanDay);
+  if(doneOrders.length===0){ toast("Rien à supprimer pour ce jour."); return; }
+  if(confirm(`Supprimer définitivement le bilan et les ${doneOrders.length} commande(s) de ${formatDayLabel(selectedBilanDay).replace('Bilan du ','').toLowerCase()} ? Action irréversible.`)){
+    const updates = {};
+    doneOrders.forEach(([id])=> updates['orders/'+id] = null);
+    tenantRef.update(updates);
+    toast("Bilan du jour supprimé");
+  }
+}
+
+function deleteAllBilanHistory(){
+  const doneIds = Object.keys(ordersCache).filter(id=>ordersCache[id].status==='valide');
+  if(doneIds.length===0){ toast("Aucun historique financier à supprimer."); return; }
+  if(confirm(`Supprimer DÉFINITIVEMENT tout l'historique financier (${doneIds.length} commande(s)) ? Cette action est irréversible et ne peut pas être annulée.`)){
+    const updates = {};
+    doneIds.forEach(id=> updates['orders/'+id] = null);
+    tenantRef.update(updates);
+    toast("Historique financier entièrement supprimé");
+  }
+}
+
 function ticketHtml(o, pending){
   const time = new Date(o.timestamp).toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
   const itemsHtml = o.items.map(it=>`<li><span>${it.qty} x ${it.name}</span><span>${formatFcfa(it.price*it.qty)}</span></li>`).join('');
@@ -1185,8 +1221,18 @@ function ticketHtml(o, pending){
       <ul>${itemsHtml}</ul>
       <div class="total-row"><span>Total</span><span>${formatFcfa(o.total)}</span></div>
       ${o.note ? `<div class="note">Note : ${o.note}</div>` : ''}
-      ${pending ? `<button class="btn full" style="margin-top:10px;" onclick="validateOrder('${o.id}')">✓ Payé — Valider</button>` : `<span class="badge" style="margin-top:8px; display:inline-block;">Validée</span>`}
+      <div style="display:flex; gap:8px; margin-top:10px;">
+        ${pending ? `<button class="btn" style="flex:1;" onclick="validateOrder('${o.id}')">✓ Payé — Valider</button>` : `<span class="badge" style="align-self:center;">Validée</span>`}
+        <button class="btn ghost" style="flex:0 0 auto;" onclick="deleteOrder('${o.id}')" title="Supprimer">🗑️</button>
+      </div>
     </div>`;
+}
+
+function deleteOrder(id){
+  if(confirm("Supprimer définitivement cette commande ?")){
+    tenantRef.child('orders/'+id).remove();
+    toast("Commande supprimée");
+  }
 }
 
 function validateOrder(id){
