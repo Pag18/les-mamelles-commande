@@ -345,9 +345,9 @@
   <!-- ===================== ÉCRAN : ESSAI EXPIRÉ / ACTIVATION ===================== -->
   <section id="view-locked" class="hidden">
     <div class="setup-wrap center-screen">
-      <h2 style="font-size:19px; text-align:center;">🔒 Période d'essai terminée</h2>
+      <h2 style="font-size:19px; text-align:center;">🔒 Accès personnel non activé</h2>
       <p class="steps" style="text-align:center;">
-        Les 30 jours d'essai gratuit sont écoulés. Pour continuer à utiliser l'outil, envoyez le code appareil ci-dessous à votre fournisseur par WhatsApp, puis entrez le code d'activation qu'il vous enverra en retour.
+        Les 30 jours d'essai gratuit sont écoulés pour l'accès personnel/propriétaire. Envoyez le code appareil ci-dessous à votre fournisseur par WhatsApp, puis entrez le code d'activation qu'il vous enverra en retour. Vos clients peuvent continuer à commander normalement.
       </p>
       <div class="card">
         <label>Votre code appareil (à envoyer à votre fournisseur)</label>
@@ -356,6 +356,7 @@
         <input id="activationCodeInput" placeholder="Ex: A1B2-C3D4" style="text-transform:uppercase;">
         <button class="btn full" onclick="tryActivate()">Activer</button>
         <p id="activationError" style="color:#ff8a65; font-size:12.5px; margin-top:8px;"></p>
+        <button class="btn secondary full" style="margin-top:10px;" onclick="backFromLocked()">← Retour à la commande</button>
       </div>
     </div>
   </section>
@@ -635,15 +636,23 @@ function computeActivationCode(tId, fingerprint){
 /* ============================================================
    INITIALISATION
 ============================================================ */
+let pendingTableParam = null;
+
 function initApp(){
   firebase.initializeApp(PRODUCT_FIREBASE_CONFIG);
   db = firebase.database();
 
-  tenantId = localStorage.getItem('cf_tenant_id');
+  const params = new URLSearchParams(window.location.search);
+  const urlTenant = params.get('r');
+  const urlTable = params.get('t');
+  if(urlTable) pendingTableParam = urlTable;
+
+  tenantId = urlTenant || localStorage.getItem('cf_tenant_id');
   if(!tenantId){
     document.getElementById('view-tenant').classList.remove('hidden');
     return;
   }
+  localStorage.setItem('cf_tenant_id', tenantId);
   bootTenant();
 }
 
@@ -657,7 +666,6 @@ function connectTenant(){
     }
     localStorage.setItem('cf_tenant_id', code);
     tenantId = code;
-    // Démarre l'essai si pas encore fait pour cet appareil (le point de départ officiel reste celui de l'info restaurant)
     bootTenant();
   }).catch(()=>{
     document.getElementById('tenantError').textContent = "Connexion impossible, vérifiez votre connexion internet.";
@@ -670,40 +678,39 @@ function bootTenant(){
 
   tenantRef.child('info').once('value').then(snap=>{
     const info = snap.val() || {};
-    checkLicense(info);
+    if(!info.trialStart){
+      info.trialStart = Date.now();
+      tenantRef.child('info/trialStart').set(info.trialStart);
+    }
+    startMainApp(info);
   });
 }
 
-function checkLicense(info){
-  // Licence déjà activée pour cet appareil ?
-  const savedLicense = localStorage.getItem('cf_license_'+tenantId);
-  if(savedLicense){
-    const fp = getDeviceFingerprint();
-    if(savedLicense === computeActivationCode(tenantId, fp)){
-      startMainApp(info, null);
-      return;
-    }
-  }
-
-  // Sinon, vérifier l'essai
-  const trialStart = info.trialStart || Date.now();
-  if(!info.trialStart){
-    tenantRef.child('info/trialStart').set(trialStart);
-  }
-  const daysElapsed = (Date.now() - trialStart) / (1000*60*60*24);
+/* Statut de licence — ne concerne QUE l'accès personnel/propriétaire,
+   jamais l'écran de commande du client. */
+function getLicenseStatus(info){
+  const daysElapsed = (Date.now() - (info.trialStart || Date.now())) / (1000*60*60*24);
   const daysLeft = Math.max(0, Math.ceil(TRIAL_DAYS - daysElapsed));
-
-  if(daysElapsed >= TRIAL_DAYS){
-    showLockedScreen();
-  }else{
-    startMainApp(info, daysLeft);
-  }
+  const fp = getDeviceFingerprint();
+  const savedLicense = localStorage.getItem('cf_license_'+tenantId);
+  const licensed = !!savedLicense && savedLicense === computeActivationCode(tenantId, fp);
+  const expired = daysElapsed >= TRIAL_DAYS && !licensed;
+  return {daysLeft, licensed, expired};
 }
 
 function showLockedScreen(){
+  document.getElementById('view-tenant').classList.add('hidden');
+  ['order','kitchen','settings','bilan'].forEach(v=>{
+    const el = document.getElementById('view-'+v);
+    if(el) el.classList.add('hidden');
+  });
   document.getElementById('view-locked').classList.remove('hidden');
   document.getElementById('deviceCodeDisplay').textContent = getDeviceFingerprint();
-  document.getElementById('licenseStatusDisplay').textContent = "Statut : essai expiré, activation requise.";
+}
+
+function backFromLocked(){
+  document.getElementById('view-locked').classList.add('hidden');
+  switchView('order');
 }
 
 function tryActivate(){
@@ -713,16 +720,15 @@ function tryActivate(){
   if(entered === expected){
     localStorage.setItem('cf_license_'+tenantId, entered);
     document.getElementById('view-locked').classList.add('hidden');
-    tenantRef.child('info').once('value').then(snap=>{
-      startMainApp(snap.val() || {}, null);
-    });
     toast("Application activée, merci !");
+    switchView('order');
+    openPinOverlay();
   }else{
     document.getElementById('activationError').textContent = "Code incorrect. Vérifiez avec votre fournisseur.";
   }
 }
 
-function startMainApp(info, daysLeft){
+function startMainApp(info){
   document.getElementById('view-tenant').classList.add('hidden');
   document.getElementById('view-locked').classList.add('hidden');
   document.getElementById('tabs').classList.remove('hidden');
@@ -731,13 +737,13 @@ function startMainApp(info, daysLeft){
   document.getElementById('restaurantNameInput').value = info.name || '';
   document.getElementById('whatsappNumber').value = info.whatsappNumber || '';
 
+  const {daysLeft, licensed} = getLicenseStatus(info);
   const banner = document.getElementById('trialBanner');
-  if(daysLeft !== null && daysLeft !== undefined){
+  if(!licensed && daysLeft > 0){
     banner.textContent = `Essai gratuit — ${daysLeft} jour${daysLeft>1?'s':''} restant${daysLeft>1?'s':''}`;
     banner.classList.remove('hidden');
-    document.getElementById('licenseStatusDisplay').textContent = "Statut : période d'essai gratuit en cours.";
   }else{
-    document.getElementById('licenseStatusDisplay').textContent = "Statut : application activée.";
+    banner.classList.add('hidden');
   }
 
   listenMenu();
@@ -754,10 +760,18 @@ let staffUnlocked = false;
 let ownerUnlocked = false;
 
 function openPinOverlay(){
-  pinBuffer = '';
-  updatePinDots();
-  document.getElementById('pinError').textContent = '';
-  document.getElementById('pinOverlay').classList.remove('hidden');
+  tenantRef.child('info').once('value').then(snap=>{
+    const info = snap.val() || {};
+    const {expired} = getLicenseStatus(info);
+    if(expired){
+      showLockedScreen();
+      return;
+    }
+    pinBuffer = '';
+    updatePinDots();
+    document.getElementById('pinError').textContent = '';
+    document.getElementById('pinOverlay').classList.remove('hidden');
+  });
 }
 function closePinOverlay(){
   document.getElementById('pinOverlay').classList.add('hidden');
@@ -968,6 +982,15 @@ function renderTableSelect(){
   select.classList.remove('hidden');
   noMsg.classList.add('hidden');
   select.innerHTML = ids.map(id=>`<option value="${id}">${tablesCache[id].name}</option>`).join('');
+
+  if(pendingTableParam){
+    const matchId = ids.find(id => tablesCache[id].name.toLowerCase() === pendingTableParam.toLowerCase());
+    if(matchId){
+      setOrderType('sur_place');
+      select.value = matchId;
+    }
+    pendingTableParam = null;
+  }
 }
 
 function addTable(){
