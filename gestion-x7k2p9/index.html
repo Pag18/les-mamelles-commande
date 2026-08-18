@@ -8,6 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <style>
   :root{
     --ink:#1A1714; --ink-soft:#2A2420; --gold:#D6A54C; --ember:#E1552B;
@@ -49,6 +50,14 @@
   }
   .badge{font-size:10.5px; padding:2px 8px; border-radius:20px; background:rgba(110,143,75,0.2); color:var(--palm);}
   .badge.expired{background:rgba(225,85,43,0.2); color:var(--ember);}
+  .qr-table-card{
+    background:var(--ink); border-radius:10px; padding:14px; margin-bottom:10px;
+    display:flex; align-items:center; gap:14px;
+  }
+  .qr-table-card .qr-box{background:#fff; padding:6px; border-radius:6px; flex-shrink:0;}
+  .qr-table-card .qr-info{font-size:13px;}
+  .qr-table-card .qr-info b{display:block; margin-bottom:4px; color:var(--gold);}
+  .qr-table-card .qr-link{font-size:10.5px; color:rgba(251,245,234,0.5); word-break:break-all;}
 </style>
 </head>
 <body>
@@ -80,6 +89,15 @@
   <h2>3. Mes restaurants</h2>
   <div id="tenantList">Chargement...</div>
 </div>
+
+<div class="card">
+  <h2>4. Générer les QR codes de table</h2>
+  <label>Code restaurant</label>
+  <input id="qrTenantId" placeholder="Ex: ABCD1234" style="text-transform:uppercase;">
+  <button class="btn" onclick="loadTablesForQr()">Charger les tables</button>
+  <div id="qrTablesContainer" style="margin-top:14px;"></div>
+</div>
+
 
 <script>
 const PRODUCT_FIREBASE_CONFIG = {
@@ -181,6 +199,55 @@ function loadTenants(){
 }
 
 loadTenants();
+
+/* ============================================================
+   GÉNÉRATION DES QR CODES DE TABLE
+============================================================ */
+const APP_BASE_URL = "https://pag18.github.io/les-mamelles-commande/";
+
+function loadTablesForQr(){
+  const tenantId = document.getElementById('qrTenantId').value.trim().toUpperCase();
+  if(!tenantId){ alert('Entrez un code restaurant.'); return; }
+  const container = document.getElementById('qrTablesContainer');
+  container.innerHTML = 'Chargement...';
+
+  db.ref('restaurants/'+tenantId+'/tables').once('value').then(snap=>{
+    const tables = snap.val() || {};
+    const ids = Object.keys(tables);
+    container.innerHTML = '';
+
+    addQrCard(container, `Lien général — ${tenantId}`, `${APP_BASE_URL}?r=${tenantId}`);
+
+    if(ids.length===0){
+      const p = document.createElement('p');
+      p.style.cssText = 'font-size:13px; color:rgba(251,245,234,0.5);';
+      p.textContent = "Aucune table configurée pour ce restaurant (le client doit les ajouter dans Réglages → Gérer les tables).";
+      container.appendChild(p);
+      return;
+    }
+    ids.forEach(id=>{
+      const name = tables[id].name;
+      const url = `${APP_BASE_URL}?r=${tenantId}&t=${encodeURIComponent(name)}`;
+      addQrCard(container, name, url);
+    });
+  }).catch(()=>{
+    container.innerHTML = '<p style="color:#ff8a65; font-size:13px;">Restaurant introuvable.</p>';
+  });
+}
+
+function addQrCard(container, label, url){
+  const card = document.createElement('div');
+  card.className = 'qr-table-card';
+  const qrBox = document.createElement('div');
+  qrBox.className = 'qr-box';
+  const info = document.createElement('div');
+  info.className = 'qr-info';
+  info.innerHTML = `<b>${label}</b><span class="qr-link">${url}</span>`;
+  card.appendChild(qrBox);
+  card.appendChild(info);
+  container.appendChild(card);
+  new QRCode(qrBox, {text: url, width: 96, height: 96});
+}
 </script>
 </body>
 </html>
